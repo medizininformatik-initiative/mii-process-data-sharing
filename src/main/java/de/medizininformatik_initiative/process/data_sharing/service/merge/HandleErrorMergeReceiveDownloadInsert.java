@@ -30,7 +30,7 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 
 		sendMail(startTask, projectIdentifier, error);
-		failTaskIfNotStartTask(startTask, latestTask);
+		failTaskIfNotStartTask(startTask, latestTask, variables);
 	}
 
 	private void sendMail(Task task, String projectIdentifier, String error)
@@ -48,7 +48,7 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 		api.getMailService().send(subject, message);
 	}
 
-	private void failTaskIfNotStartTask(Task startTask, Task latestTask)
+	private void failTaskIfNotStartTask(Task startTask, Task latestTask, Variables variables)
 	{
 		if (latestTask != null && startTask != latestTask)
 		{
@@ -56,6 +56,7 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
 					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
 					.update(latestTask);
+			variables.updateTask(latestTask);
 		}
 	}
 }
