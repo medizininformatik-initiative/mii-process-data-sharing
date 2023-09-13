@@ -58,7 +58,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 	{
 		if (task != null)
 		{
-			return task.getOutput().stream().filter(o -> o.getValue() instanceof Coding).map(o -> (Coding) o.getValue())
+			return task.getInput().stream().filter(o -> o.getValue() instanceof Coding).map(o -> (Coding) o.getValue())
 					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(c -> c.getCode())
 					.findFirst();
 		}
