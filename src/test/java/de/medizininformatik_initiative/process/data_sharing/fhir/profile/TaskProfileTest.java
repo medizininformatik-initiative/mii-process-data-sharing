@@ -147,7 +147,7 @@ public class TaskProfileTest
 	{
 		Task task = createValidTaskExecuteDataSharing();
 		task.addOutput(new DataSetStatusGenerator().createDataSetStatusOutput(
-				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_OK, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_OK, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
 				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS));
 
 		ValidationResult result = resourceValidator.validate(task);
@@ -162,8 +162,7 @@ public class TaskProfileTest
 	{
 		Task task = createValidTaskExecuteDataSharing();
 		task.addOutput(new DataSetStatusGenerator().createDataSetStatusOutput(
-				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_OK, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
 				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "some error message"));
 
 		ValidationResult result = resourceValidator.validate(task);

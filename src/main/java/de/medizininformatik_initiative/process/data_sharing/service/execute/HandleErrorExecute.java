@@ -37,6 +37,9 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 
 		sendMail(startTask, statusCode.orElse("unknown"), dmsIdentifier, projectIdentifier, error);
 		failTaskIfNotStartTask(latestTask, statusCode.isPresent(), variables);
+
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, null);
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, null);
 	}
 
 	private void sendMail(Task startTask, String code, String dmsIdentifier, String projectIdentifier, String error)

@@ -4,7 +4,7 @@ In this repository you will find the process to extract and transport data-sets 
 .
 
 ## Development
-Branching follows the git-flow model, for the latest development version see branch [develop](https://github.com/medizininformatik-initiative/mii-process-data-transfer/tree/develop).
+Branching follows the git-flow model, for the latest development version see branch [develop](https://github.com/medizininformatik-initiative/mii-process-data-sharing/tree/develop).
 
 ## Build
 
