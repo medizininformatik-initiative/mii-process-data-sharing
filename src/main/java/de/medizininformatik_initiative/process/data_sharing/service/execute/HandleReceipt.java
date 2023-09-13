@@ -43,9 +43,9 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 
 		Task startTask = variables.getStartTask();
-		Task currentTask = variables.getLatestTask();
+		Task latestTask = variables.getLatestTask();
 
-		Task.ParameterComponent statusCodeInput = getDataSetStatusInput(currentTask);
+		Task.ParameterComponent statusCodeInput = getDataSetStatusInput(latestTask);
 		String statusCode = getDataSetStatusCode(statusCodeInput);
 		String error = getDataSetStatusError(statusCodeInput);
 
@@ -55,7 +55,7 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 					"Task with id '{}' for project-identifier '{}' and DMS with identifier '{}' has data-set status code '{}'",
 					startTask.getId(), projectIdentifier, dmsIdentifier, statusCode);
 
-			transformInputToOutput(startTask, currentTask);
+			transformInputToOutput(startTask, latestTask);
 			variables.updateTask(startTask);
 
 			sendSuccessfulMail(startTask, projectIdentifier, dmsIdentifier, statusCode);
@@ -79,14 +79,18 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 
 	private Task.ParameterComponent getDataSetStatusInput(Task task)
 	{
-		return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
-				.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
-						&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS.equals(c.getCode())))
-				.filter(i -> i.getValue() instanceof Coding).findFirst()
-				.orElse(statusGenerator.createDataSetStatusInput(
-						ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS));
+		Task.ParameterComponent missingReceipt = statusGenerator.createDataSetStatusInput(
+				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
+
+		if (task != null)
+			return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
+					.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
+							&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS.equals(c.getCode())))
+					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(missingReceipt);
+		else
+			return missingReceipt;
 	}
 
 	private String getDataSetStatusCode(Task.ParameterComponent input)
@@ -99,10 +103,11 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "none";
 	}
 
-	private void transformInputToOutput(Task startTask, Task currentTask)
+	private void transformInputToOutput(Task startTask, Task latestTask)
 	{
-		statusGenerator.transformInputToOutput(currentTask, startTask, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
+		if (latestTask != null)
+			statusGenerator.transformInputToOutput(latestTask, startTask, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
 	}
 
 	private void sendSuccessfulMail(Task task, String projectIdentifier, String dmsIdentifier, String code)

@@ -20,25 +20,25 @@ public class ExtractMergedDataSetUrl extends AbstractServiceDelegate
 	@Override
 	protected void doExecute(DelegateExecution execution, Variables variables)
 	{
-		Task currentTask = variables.getLatestTask();
-		Task leadingTask = variables.getStartTask();
+		Task startTask = variables.getStartTask();
+		Task latestTask = variables.getLatestTask();
 
-		String dataSetUrl = extractDataSetUrl(currentTask);
+		String dataSetUrl = extractDataSetUrl(latestTask);
 		Task.TaskOutputComponent dataSetUrlOutput = createDataSetUrlOutput(dataSetUrl);
 
-		leadingTask.addOutput(dataSetUrlOutput);
-		variables.updateTask(leadingTask);
+		startTask.addOutput(dataSetUrlOutput);
+		variables.updateTask(startTask);
 	}
 
-	private String extractDataSetUrl(Task currentTask)
+	private String extractDataSetUrl(Task latestTask)
 	{
-		return currentTask.getInput().stream()
+		return latestTask.getInput().stream()
 				.filter(i -> i.getType().getCoding().stream()
 						.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
 								&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL.equals(c.getCode())))
 				.map(Task.ParameterComponent::getValue).filter(t -> t instanceof UrlType).map(t -> (UrlType) t)
 				.map(PrimitiveType::getValue).findFirst().orElseThrow(() -> new RuntimeException(
-						"Could not find data-set URL in Task with id '" + currentTask.getId() + "'"));
+						"Could not find data-set URL in Task with id '" + latestTask.getId() + "'"));
 	}
 
 	private Task.TaskOutputComponent createDataSetUrlOutput(String dataSetUrl)

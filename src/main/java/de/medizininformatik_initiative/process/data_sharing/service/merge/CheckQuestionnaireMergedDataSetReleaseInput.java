@@ -80,9 +80,9 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 				.filter(PrimitiveType::hasValue).map(PrimitiveType::getValue).findFirst();
 	}
 
-	private void storeDataSetUrlAsTaskOutput(Task leadingTask, String dataSetUrl)
+	private void storeDataSetUrlAsTaskOutput(Task startTask, String dataSetUrl)
 	{
-		Optional<Task.TaskOutputComponent> output = leadingTask.getOutput().stream()
+		Optional<Task.TaskOutputComponent> output = startTask.getOutput().stream()
 				.filter(Task.TaskOutputComponent::hasType)
 				.filter(o -> o.getType().getCoding().stream().anyMatch(
 						c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL.equals(c.getCode())
@@ -95,7 +95,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 			dataSetUrlOutput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 					.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL);
 			dataSetUrlOutput.setValue(new UrlType().setValue(dataSetUrl));
-			leadingTask.addOutput(dataSetUrlOutput);
+			startTask.addOutput(dataSetUrlOutput);
 		});
 	}
 
