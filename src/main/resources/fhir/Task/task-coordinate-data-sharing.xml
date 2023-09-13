@@ -1,0 +1,110 @@
+<Task xmlns="http://hl7.org/fhir">
+	<meta>
+		<profile value="http://medizininformatik-initiative.de/fhir/StructureDefinition/task-coordinate-data-sharing|#{version}" />
+	</meta>
+	<identifier>
+		<system value="http://dsf.dev/sid/task-identifier"/>
+		<value value="http://medizininformatik-initiative.de/bpe/Process/coordinateDataSharing/#{version}/coordinateDataSharing"/>
+	</identifier>
+	<instantiatesCanonical value="http://medizininformatik-initiative.de/bpe/Process/coordinateDataSharing|#{version}" />
+	<status value="draft" />
+	<intent value="order" />
+	<authoredOn value="#{date}" />
+	<requester>
+		<type value="Organization" />
+		<identifier>
+			<system value="http://dsf.dev/sid/organization-identifier" />
+			<value value="#{organization}" />
+		</identifier>
+	</requester>
+	<restriction>
+		<recipient>
+			<type value="Organization" />
+			<identifier>
+				<system value="http://dsf.dev/sid/organization-identifier" />
+				<value value="#{organization}" />
+			</identifier>
+		</recipient>
+	</restriction>
+	<input>
+		<type>
+			<coding>
+				<system value="http://dsf.dev/fhir/CodeSystem/bpmn-message" />
+				<code value="message-name" />
+			</coding>
+		</type>
+		<valueString value="coordinateDataSharing" />
+	</input>
+	<input>
+		<type>
+			<coding>
+				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<code value="project-identifier" />
+			</coding>
+		</type>
+		<valueIdentifier>
+			<system value="http://medizininformatik-initiative.de/sid/project-identifier" />
+			<value value="Example_Project" />
+		</valueIdentifier>
+	</input>
+	<input>
+		<type>
+			<coding>
+				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<code value="extraction-period" />
+			</coding>
+		</type>
+		<valueString value="P28D" />
+	</input>
+	<input>
+		<type>
+			<coding>
+				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<code value="contract-url" />
+			</coding>
+		</type>
+		<valueUrl value="http://forschen-fuer-gesundheit.de/contract/example_project" />
+	</input>
+	<input>
+		<type>
+			<coding>
+				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<code value="researcher-identifier" />
+			</coding>
+		</type>
+		<valueIdentifier>
+			<system value="http://medizininformatik-initiative.de/sid/researcher-identifier" />
+			<value value="Example_Researcher" />
+		</valueIdentifier>
+	</input>
+	<input>
+		<type>
+			<coding>
+				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<code value="dic-identifier" />
+			</coding>
+		</type>
+		<valueReference>
+			<type value="Organization" />
+			<identifier>
+				<system value="http://dsf.dev/sid/organization-identifier" />
+				<value value="#{organization}" />
+			</identifier>
+		</valueReference>
+	</input>
+	<input>
+		<type>
+			<coding>
+				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<code value="dms-identifier" />
+			</coding>
+		</type>
+		<valueReference>
+			<type value="Organization" />
+			<identifier>
+				<system value="http://dsf.dev/sid/organization-identifier" />
+				<value value="#{organization}" />
+			</identifier>
+		</valueReference>
+	</input>
+</Task>
