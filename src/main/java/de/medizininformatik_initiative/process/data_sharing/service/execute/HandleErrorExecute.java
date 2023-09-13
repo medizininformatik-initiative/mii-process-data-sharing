@@ -1,5 +1,7 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
+import java.util.Optional;
+
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
@@ -31,37 +33,42 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 		String error = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE);
 
-		sendMail(startTask, latestTask, dmsIdentifier, projectIdentifier, error);
-		failTaskIfNotStartTask(startTask, latestTask);
+		Optional<String> statusCode = extractStatusCode(latestTask);
+
+		sendMail(startTask, statusCode.orElse("unknown"), dmsIdentifier, projectIdentifier, error);
+		failTaskIfNotStartTask(latestTask, statusCode.isPresent());
 	}
 
-	private void sendMail(Task startTask, Task latestTask, String dmsIdentifier, String projectIdentifier, String error)
+	private void sendMail(Task startTask, String code, String dmsIdentifier, String projectIdentifier, String error)
 	{
 		logger.warn("{} - creating new user-startTask 'release-data-set'", error);
-
-		String statusCode = "unknown";
-		if (latestTask != null)
-		{
-			statusCode = latestTask.getOutput().stream().filter(o -> o.getValue() instanceof Coding)
-					.map(o -> (Coding) o.getValue())
-					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(c -> c.getCode())
-					.findFirst().orElse("unknown");
-		}
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
 		String message = "Could not send data-set in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '"
 				+ startTask.getId() + "' to DMS with identifier '" + dmsIdentifier + "' for project-identifier '"
-				+ projectIdentifier + "':\n" + "- status code: " + statusCode + "\n" + "- error: "
+				+ projectIdentifier + "':\n" + "- status code: " + code + "\n" + "- error: "
 				+ (error == null ? "none" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-data-set'.";
 
 		api.getMailService().send(subject, message);
 	}
 
-	private void failTaskIfNotStartTask(Task startTask, Task latestTask)
+	private Optional<String> extractStatusCode(Task task)
 	{
-		if (latestTask != null && startTask != latestTask)
+		if (task != null)
+		{
+			return task.getOutput().stream().filter(o -> o.getValue() instanceof Coding).map(o -> (Coding) o.getValue())
+					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(c -> c.getCode())
+					.findFirst();
+		}
+		else
+			return Optional.empty();
+	}
+
+	private void failTaskIfNotStartTask(Task latestTask, Boolean codeExists)
+	{
+		if (latestTask != null && codeExists)
 		{
 			latestTask.setStatus(Task.TaskStatus.FAILED);
 			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()

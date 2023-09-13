@@ -50,6 +50,7 @@ public class CommunicateReceivedDataSet extends AbstractServiceDelegate
 		api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
 				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
 				.update(latestTask);
+		variables.updateTask(latestTask);
 	}
 
 	private String getOrganizationIdentifier(Task task)
