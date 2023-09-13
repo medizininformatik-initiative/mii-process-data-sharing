@@ -36,7 +36,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 		Optional<String> statusCode = extractStatusCode(latestTask);
 
 		sendMail(startTask, statusCode.orElse("unknown"), dmsIdentifier, projectIdentifier, error);
-		failTaskIfNotStartTask(latestTask, statusCode.isPresent());
+		failTaskIfNotStartTask(latestTask, statusCode.isPresent(), variables);
 	}
 
 	private void sendMail(Task startTask, String code, String dmsIdentifier, String projectIdentifier, String error)
@@ -66,7 +66,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 			return Optional.empty();
 	}
 
-	private void failTaskIfNotStartTask(Task latestTask, Boolean codeExists)
+	private void failTaskIfNotStartTask(Task latestTask, Boolean codeExists, Variables variables)
 	{
 		if (latestTask != null && codeExists)
 		{
@@ -74,6 +74,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
 					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
 					.update(latestTask);
+			variables.updateTask(latestTask);
 		}
 	}
 }
