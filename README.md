@@ -1,7 +1,10 @@
-# MII Process Data Transfer
+# MII Process Data Sharing
 
 In this repository you will find the process to extract and transport data-sets of an approved data usage project from DIC to a DMS, coordinated by a HRP.
-.
+
+## Documentation
+
+The documentation of the process including the description, the deployment and configuration guides as well as instructions on how to start a process instance can be found in the [wiki](https://github.com/medizininformatik-initiative/mii-process-data-sharing/wiki).
 
 ## Development
 Branching follows the git-flow model, for the latest development version see branch [develop](https://github.com/medizininformatik-initiative/mii-process-data-sharing/tree/develop).
