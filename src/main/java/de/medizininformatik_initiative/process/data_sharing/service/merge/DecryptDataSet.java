@@ -57,7 +57,7 @@ public class DecryptDataSet extends AbstractServiceDelegate implements Initializ
 		String sendingOrganization = task.getRequester().getIdentifier().getValue();
 		String localOrganization = api.getOrganizationProvider().getLocalOrganizationIdentifierValue()
 				.orElseThrow(() -> new RuntimeException("LocalOrganizationIdentifierValue is empty"));
-		;
+
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		byte[] bundleEncrypted = variables
 				.getByteArray(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_ENCRYPTED);

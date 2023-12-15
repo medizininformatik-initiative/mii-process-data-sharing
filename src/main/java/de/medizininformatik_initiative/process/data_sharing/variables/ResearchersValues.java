@@ -10,7 +10,7 @@ import org.camunda.bpm.engine.variable.value.TypedValue;
 
 public final class ResearchersValues
 {
-	public static interface ResearchersValue extends PrimitiveValue<Researchers>
+	public interface ResearchersValue extends PrimitiveValue<Researchers>
 	{
 	}
 
