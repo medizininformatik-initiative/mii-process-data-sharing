@@ -12,20 +12,16 @@ import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing
 import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
-import dev.dsf.bpe.v1.service.FhirWebserviceClientProvider;
-import dev.dsf.bpe.v1.service.MailService;
 
 public class ReleaseDataSetListener extends DefaultUserTaskListener implements InitializingBean
 {
+	private final ProcessPluginApi api;
 	private final FhirClientFactory fhirStoreClientFactory;
-	private final FhirWebserviceClientProvider fhirDsfClientProvider;
-	private final MailService mailService;
 
 	public ReleaseDataSetListener(ProcessPluginApi api, FhirClientFactory fhirClientFactory)
 	{
 		super(api);
-		this.mailService = api.getMailService();
-		this.fhirDsfClientProvider = api.getFhirWebserviceClientProvider();
+		this.api = api;
 		this.fhirStoreClientFactory = fhirClientFactory;
 	}
 
@@ -34,8 +30,6 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 	{
 		super.afterPropertiesSet();
 		Objects.requireNonNull(fhirStoreClientFactory, "fhirClientFactory");
-		Objects.requireNonNull(fhirDsfClientProvider, "fhirDsfClientProvider");
-		Objects.requireNonNull(mailService, "mailService");
 	}
 
 	@Override
@@ -58,7 +52,7 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
 	{
 		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(fhirDsfClientProvider.getLocalWebserviceClient().getBaseUrl(),
+		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
 				id.getResourceType(), id.getIdPart(), null);
 
 		String projectIdentifier = (String) userTask.getExecution()
@@ -71,7 +65,11 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
 				+ absoluteId.getValue();
 
-		mailService.send(subject, message);
+		api.getMailService().send(subject, message);
+
+		api.getVariables(userTask.getExecution()).setResource(
+				ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE,
+				questionnaireResponse);
 	}
 
 	private void replace(QuestionnaireResponse.QuestionnaireResponseItemComponent item, String projectIdentifier,

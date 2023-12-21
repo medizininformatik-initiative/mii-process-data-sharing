@@ -43,7 +43,7 @@ public class TaskProfileTest
 					"extension-data-set-status-error.xml", "task-consolidate-data-sets.xml",
 					"task-coordinate-data-sharing.xml", "task-execute-data-sharing.xml", "task-merge-data-sharing.xml",
 					"task-send-data-set.xml", "task-status-data-set.xml", "task-merged-data-set.xml",
-					"task-received-data-set.xml"),
+					"task-received-data-set.xml", "task-stop-execute-data-sharing.xml"),
 			Arrays.asList("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
 					"mii-cryptography.xml", "mii-data-set-status.xml"),
 			Arrays.asList("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
@@ -458,6 +458,42 @@ public class TaskProfileTest
 				.getType().addCoding(CodeSystems.BpmnMessage.messageName());
 		task.addInput().setValue(new StringType(UUID.randomUUID().toString())).getType()
 				.addCoding(CodeSystems.BpmnMessage.businessKey());
+
+		return task;
+	}
+
+	@Test
+	public void testValidTaskStopExecuteDataSharing()
+	{
+		Task task = createValidTaskStopExecuteDataSharing();
+
+		ValidationResult result = resourceValidator.validate(task);
+		ValidationSupportRule.logValidationMessages(logger, result);
+
+		assertEquals(0, result.getMessages().stream().filter(m -> ResultSeverityEnum.ERROR.equals(m.getSeverity())
+				|| ResultSeverityEnum.FATAL.equals(m.getSeverity())).count());
+	}
+
+	private Task createValidTaskStopExecuteDataSharing()
+	{
+		Task task = new Task();
+		task.getMeta().addProfile(ConstantsDataSharing.PROFILE_TASK_STOP_EXECUTE_DATA_SHARING);
+		task.setInstantiatesCanonical(ConstantsDataSharing.PROFILE_TASK_STOP_EXECUTE_DATA_SHARING_PROCESS_URI + "|"
+				+ def.getResourceVersion());
+		task.setStatus(TaskStatus.REQUESTED);
+		task.setIntent(TaskIntent.ORDER);
+		task.setAuthoredOn(new Date());
+		task.getRequester().setType(ResourceType.Organization.name())
+				.setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_HRP"));
+		task.getRestriction().addRecipient().setType(ResourceType.Organization.name())
+				.setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC"));
+		task.addInput()
+				.setValue(new StringType(ConstantsDataSharing.PROFILE_TASK_STOP_EXECUTE_DATA_SHARING_MESSAGE_NAME))
+				.getType().addCoding(CodeSystems.BpmnMessage.messageName());
+		task.addInput().setValue(new StringType(UUID.randomUUID().toString())).getType()
+				.addCoding(CodeSystems.BpmnMessage.businessKey());
+		task.addInput().setValue(new StringType(UUID.randomUUID().toString())).getType()
+				.addCoding(CodeSystems.BpmnMessage.correlationKey());
 
 		return task;
 	}

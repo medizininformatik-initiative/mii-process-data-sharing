@@ -17,6 +17,7 @@ import de.medizininformatik_initiative.process.data_sharing.message.SendMergeDat
 import de.medizininformatik_initiative.process.data_sharing.message.SendMergedDataSet;
 import de.medizininformatik_initiative.process.data_sharing.message.SendReceipt;
 import de.medizininformatik_initiative.process.data_sharing.message.SendReceivedDataSet;
+import de.medizininformatik_initiative.process.data_sharing.message.SendStopExecuteDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseConsolidateDataSetsListener;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseDataSetListener;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseMergedDataSetListener;
@@ -37,6 +38,7 @@ import de.medizininformatik_initiative.process.data_sharing.service.execute.Hand
 import de.medizininformatik_initiative.process.data_sharing.service.execute.PrepareExecution;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ReadDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.SelectDataSetTarget;
+import de.medizininformatik_initiative.process.data_sharing.service.execute.StopReleaseDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.StoreDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ValidateDataSetExecute;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.CheckQuestionnaireMergedDataSetReleaseInput;
@@ -203,6 +205,13 @@ public class DataSharingConfig
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public SendStopExecuteDataSharing sendStopExecuteDataSharing()
+	{
+		return new SendStopExecuteDataSharing(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ExtractMergedDataSetUrl extractMergedDataSetUrl()
 	{
 		return new ExtractMergedDataSetUrl(api);
@@ -222,6 +231,13 @@ public class DataSharingConfig
 	public ReleaseDataSetListener releaseDataSetListener()
 	{
 		return new ReleaseDataSetListener(api, dicFhirClientConfig.fhirClientFactory());
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public StopReleaseDataSet stopReleaseDataSet()
+	{
+		return new StopReleaseDataSet(api);
 	}
 
 	@Bean
