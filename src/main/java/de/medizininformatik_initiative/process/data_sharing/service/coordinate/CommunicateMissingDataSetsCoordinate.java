@@ -1,5 +1,7 @@
 package de.medizininformatik_initiative.process.data_sharing.service.coordinate;
 
+import java.util.List;
+
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -35,6 +37,12 @@ public class CommunicateMissingDataSetsCoordinate extends AbstractServiceDelegat
 		logMissingDataSets(targets, taskId, projectIdentifier, dmsIdentifier);
 		sendMail(taskId, targets, projectIdentifier, dmsIdentifier);
 		outputMissingDataSets(variables, targets);
+
+		// needed for correlation to work when sending stop execute data sharing message
+		List<Target> targetsWithoutCorrelationKey = targets.getEntries().stream().map(t -> variables
+				.createTarget(t.getOrganizationIdentifierValue(), t.getEndpointIdentifierValue(), t.getEndpointUrl()))
+				.toList();
+		variables.setTargets(variables.createTargets(targetsWithoutCorrelationKey));
 	}
 
 	private void logMissingDataSets(Targets targets, String taskId, String projectIdentifier, String dmsIdentifier)
@@ -45,9 +53,8 @@ public class CommunicateMissingDataSetsCoordinate extends AbstractServiceDelegat
 	private void log(Target target, String taskId, String projectIdentifier, String dmsIdentifier)
 	{
 		logger.warn(
-				"Missing data-set at DMS '" + dmsIdentifier
-						+ "' from organization '{}' in data-sharing project '{}' and Task with id '{}'",
-				target.getOrganizationIdentifierValue(), projectIdentifier, taskId);
+				"Missing data-set at DMS '{}' from organization '{}' in data-sharing project '{}' and Task with id '{}'",
+				dmsIdentifier, target.getOrganizationIdentifierValue(), projectIdentifier, taskId);
 	}
 
 	private void sendMail(String taskId, Targets targets, String projectIdentifier, String dmsIdentifier)

@@ -62,10 +62,12 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 
 		var nPrId = "fhir/NamingSystem/mii-project-identifier.xml";
 
+		var qReCon = "fhir/Questionnaire/questionnaire-release-consolidate-data-sets.xml";
 		var qReExe = "fhir/Questionnaire/questionnaire-release-data-set.xml";
 		var qReMer = "fhir/Questionnaire/questionnaire-release-merged-data-set.xml";
 
 		var sEmedId = "fhir/StructureDefinition/extension-dic-identifier.xml";
+		var sTcon = "fhir/StructureDefinition/task-consolidate-data-sets.xml";
 		var sTcoo = "fhir/StructureDefinition/task-coordinate-data-sharing.xml";
 		var sTexe = "fhir/StructureDefinition/task-execute-data-sharing.xml";
 		var sTmer = "fhir/StructureDefinition/task-merge-data-sharing.xml";
@@ -73,6 +75,7 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 		var sTsenMer = "fhir/StructureDefinition/task-merged-data-set.xml";
 		var sTsenRecHrp = "fhir/StructureDefinition/task-received-data-set.xml";
 		var sTsenRecDic = "fhir/StructureDefinition/task-status-data-set.xml";
+		var sTstExe = "fhir/StructureDefinition/task-stop-execute-data-sharing.xml";
 
 		var tCoo = "fhir/Task/task-coordinate-data-sharing.xml";
 
@@ -83,11 +86,12 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 
 		return Map.of( //
 				ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING, //
-				Arrays.asList(aCoo, cDaSh, nPrId, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
+				Arrays.asList(aCoo, cDaSh, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING, //
-				Arrays.asList(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, vDaSeStSe, vDaSh), //
+				Arrays.asList(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
+						vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING, //
-				Arrays.asList(aMer, cDaSeSt, cCrypto, cDaSh, eDaSeStEr, nPrId, qReMer, sEmedId, sTmer, sTsen, vCrypto,
-						vDaSeStRe, vDaSh));
+				Arrays.asList(aMer, cDaSeSt, cCrypto, cDaSh, eDaSeStEr, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
+						vCrypto, vDaSeStRe, vDaSh));
 	}
 }
