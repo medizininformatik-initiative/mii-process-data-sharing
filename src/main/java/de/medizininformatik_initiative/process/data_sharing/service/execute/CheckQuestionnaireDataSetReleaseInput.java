@@ -68,7 +68,7 @@ public class CheckQuestionnaireDataSetReleaseInput extends AbstractServiceDelega
 	private Stream<String> getProjectIdentifiersAsLowerCase(QuestionnaireResponse questionnaireResponse)
 	{
 		return questionnaireResponse.getItem().stream()
-				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_RELEASE.equals(i.getLinkId()))
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.flatMap(i -> i.getAnswer().stream()).filter(a -> a.getValue() instanceof StringType)
 				.map(a -> (StringType) a.getValue()).map(PrimitiveType::getValue).map(String::toLowerCase)
 				.map(String::trim);

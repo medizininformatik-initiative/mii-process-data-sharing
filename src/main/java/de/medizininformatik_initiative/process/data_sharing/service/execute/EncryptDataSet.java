@@ -63,11 +63,11 @@ public class EncryptDataSet extends AbstractServiceDelegate implements Initializ
 			String dmsUrl = variables.getTarget().getEndpointUrl();
 			String localIdentifier = api.getOrganizationProvider().getLocalOrganizationIdentifierValue()
 					.orElseThrow(() -> new RuntimeException("LocalOrganizationIdentifierValue is empty"));
-			;
+
 			Bundle toEncrypt = variables.getResource(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET);
 
 			PublicKey publicKey = readPublicKey(dmsIdentifier, dmsUrl);
-			byte[] encrypted = encrypt(execution, publicKey, toEncrypt, localIdentifier, dmsIdentifier);
+			byte[] encrypted = encrypt(publicKey, toEncrypt, localIdentifier, dmsIdentifier);
 
 			variables.setByteArray(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_ENCRYPTED, encrypted);
 		}
@@ -108,7 +108,7 @@ public class EncryptDataSet extends AbstractServiceDelegate implements Initializ
 	{
 		List<DocumentReference> documentReferences = bundle.getEntry().stream()
 				.map(Bundle.BundleEntryComponent::getResource).filter(r -> r instanceof DocumentReference)
-				.map(r -> ((DocumentReference) r)).toList();
+				.map(r -> (DocumentReference) r).toList();
 
 		if (documentReferences.size() < 1)
 			throw new IllegalArgumentException("Could not find any DocumentReference in PublicKey Bundle");
@@ -122,7 +122,7 @@ public class EncryptDataSet extends AbstractServiceDelegate implements Initializ
 	private Binary getBinary(Bundle bundle)
 	{
 		List<Binary> binaries = bundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource)
-				.filter(r -> r instanceof Binary).map(b -> ((Binary) b)).toList();
+				.filter(r -> r instanceof Binary).map(b -> (Binary) b).toList();
 
 		if (binaries.size() < 1)
 			throw new IllegalArgumentException("Could not find any Binary in PublicKey Bundle");
@@ -172,8 +172,8 @@ public class EncryptDataSet extends AbstractServiceDelegate implements Initializ
 					"Sha256-hash in DocumentReference does not match computed sha256-hash of Binary");
 	}
 
-	private byte[] encrypt(DelegateExecution execution, PublicKey publicKey, Bundle bundle,
-			String sendingOrganizationIdentifier, String receivingOrganizationIdentifier)
+	private byte[] encrypt(PublicKey publicKey, Bundle bundle, String sendingOrganizationIdentifier,
+			String receivingOrganizationIdentifier)
 	{
 		try
 		{

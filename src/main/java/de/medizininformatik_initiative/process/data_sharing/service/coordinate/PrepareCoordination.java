@@ -47,6 +47,7 @@ public class PrepareCoordination extends AbstractServiceDelegate
 				ResearchersValues.create(new Researchers(researcherIdentifiers)));
 
 		String dicIdentifiers = getDicIdentifiers(task);
+		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_ALL_DATA_SETS_RECEIVED, false);
 
 		String dmsIdentifier = getDmsIdentifier(task);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER, dmsIdentifier);

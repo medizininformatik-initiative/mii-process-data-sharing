@@ -1,0 +1,41 @@
+<Questionnaire xmlns="http://hl7.org/fhir">
+	<meta>
+		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.0.0"/>
+		<tag>
+			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
+			<code value="ALL"/>
+		</tag>
+	</meta>
+	<url value="http://medizininformatik-initiative.de/fhir/Questionnaire/release-consolidate-data-sets"/>
+	<!-- version managed by bpe -->
+	<version value="#{version}"/>
+	<!-- date managed by bpe -->
+	<date value="#{date}"/>
+	<!-- status managed by bpe -->
+	<status value="unknown"/>
+	<item>
+		<linkId value="business-key"/>
+		<type value="string"/>
+		<text value="The business-key of the process execution"/>
+	</item>
+	<item>
+		<linkId value="user-task-id"/>
+		<type value="string"/>
+		<text value="The user-task-id of the process execution"/>
+	</item>
+	<item>
+		<linkId value="display"/>
+		<type value="display"/>
+		<text value="{project-identifier-placeholder} consolidate data-sets: {new-line-placeholder} This user-task releases the consolidation of data-sets at the DMS {dms-identifier-placeholder} or extends the extraction period. Currently there are data-sets missing from the following DIC: {dic-identifiers-placeholder}"/>
+	</item>
+	<item>
+		<linkId value="release"/>
+		<type value="boolean"/>
+		<text value="Should consolidation of data-sets start?"/>
+	</item>
+	<item>
+		<linkId value="extended-extraction-period"/>
+		<type value="string"/>
+		<text value="If consolidation should not start, please set a new extraction period following the ISO 8601 time duration pattern."/>
+	</item>
+</Questionnaire>
