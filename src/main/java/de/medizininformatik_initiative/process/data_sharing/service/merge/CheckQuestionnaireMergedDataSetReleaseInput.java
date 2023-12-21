@@ -57,8 +57,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 					+ "/" + getProvidedProjectIdentifierAsLowerCase(questionnaireResponse)
 					+ ") or QuestionnaireResponse with id '"
 					+ getDsfFhirServerAbsoluteId(questionnaireResponse.getIdElement())
-					+ "' is missing item with linkId '"
-					+ ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DATA_SET_URL + "'";
+					+ "' is missing item with linkId '" + ConstantsDataSharing.QUESTIONNAIRES_ITEM_DATA_SET_URL + "'";
 
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
 					message);
@@ -70,8 +69,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 	private Optional<String> getDataSetUrl(QuestionnaireResponse questionnaireResponse)
 	{
 		return questionnaireResponse.getItem().stream()
-				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DATA_SET_URL
-						.equals(i.getLinkId()))
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DATA_SET_URL.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasAnswer)
 				.flatMap(i -> i.getAnswer().stream())
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent::hasValue)
@@ -114,7 +112,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 	private Stream<String> getProjectIdentifiersAsLowerCase(QuestionnaireResponse questionnaireResponse)
 	{
 		return questionnaireResponse.getItem().stream()
-				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_RELEASE.equals(i.getLinkId()))
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.flatMap(i -> i.getAnswer().stream()).filter(a -> a.getValue() instanceof StringType)
 				.map(a -> (StringType) a.getValue()).map(PrimitiveType::getValue).map(String::toLowerCase)
 				.map(String::trim);

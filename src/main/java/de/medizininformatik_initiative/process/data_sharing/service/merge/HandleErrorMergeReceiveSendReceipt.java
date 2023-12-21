@@ -36,14 +36,14 @@ public class HandleErrorMergeReceiveSendReceipt extends AbstractServiceDelegate
 
 	private void sendMail(Task startTask, Task latestTask, String projectIdentifier, String error)
 	{
-		logger.warn("{} - creating new user-startTask 'release-data-set'", error);
+		logger.warn("{} - creating new user-task 'release-data-set'", error);
 
 		String statusCode = "unknown";
 		if (latestTask != null)
 		{
 			statusCode = latestTask.getOutput().stream().filter(o -> o.getValue() instanceof Coding)
 					.map(o -> (Coding) o.getValue())
-					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(c -> c.getCode())
+					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(Coding::getCode)
 					.findFirst().orElse("unknown");
 		}
 

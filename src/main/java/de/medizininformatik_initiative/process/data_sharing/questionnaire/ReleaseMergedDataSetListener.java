@@ -41,9 +41,9 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implem
 				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
 		questionnaireResponse.getItem().stream()
-				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DISPLAY.equals(i.getLinkId())
-						|| ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_RELEASE.equals(i.getLinkId())
-						|| ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DATA_SET_URL.equals(i.getLinkId()))
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId())
+						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId())
+						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_DATA_SET_URL.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasText)
 				.forEach(i -> replace(i, projectIdentifier));
 	}
@@ -58,10 +58,9 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implem
 		String projectIdentifier = (String) userTask.getExecution()
 				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
-		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING
-				+ "'";
+		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
 		String message = "A new user-task 'release-merged-data-set' for data-sharing project '" + projectIdentifier
-				+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING
+				+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
 				+ absoluteId.getValue();
 
@@ -87,8 +86,8 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implem
 	private String replaceText(String toReplace, String projectIdentifier)
 	{
 		return toReplace
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_PROJECT_IDENTIFIER,
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
 						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_NEW_LINE, "</br>");
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_NEW_LINE, "</br>");
 	}
 }

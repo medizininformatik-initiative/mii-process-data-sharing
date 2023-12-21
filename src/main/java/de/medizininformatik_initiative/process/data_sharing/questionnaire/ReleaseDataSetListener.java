@@ -48,8 +48,8 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 		String fhirStoreBaseUrl = fhirStoreClientFactory.getFhirClient().getFhirBaseUrl();
 
 		questionnaireResponse.getItem().stream()
-				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DISPLAY.equals(i.getLinkId())
-						|| ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_RELEASE.equals(i.getLinkId()))
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId())
+						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasText)
 				.forEach(i -> replace(i, projectIdentifier, dmsIdentifier, fhirStoreBaseUrl));
 	}
@@ -95,12 +95,11 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 			String fhirStoreBaseUrl)
 	{
 		return toReplace
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_PROJECT_IDENTIFIER,
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
 						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_DMS_IDENTIFIER,
-						"<b>" + dmsIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_FHIR_STORE_BASE_URL,
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "<b>" + dmsIdentifier + "</b>")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_FHIR_STORE_BASE_URL,
 						"<b>" + fhirStoreBaseUrl + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_NEW_LINE, "</br>");
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_NEW_LINE, "</br>");
 	}
 }

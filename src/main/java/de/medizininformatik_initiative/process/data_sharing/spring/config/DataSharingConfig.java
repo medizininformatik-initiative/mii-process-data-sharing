@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDeploymentStateListener;
+import de.medizininformatik_initiative.process.data_sharing.message.SendConsolidateDataSets;
 import de.medizininformatik_initiative.process.data_sharing.message.SendDataSet;
 import de.medizininformatik_initiative.process.data_sharing.message.SendExecuteDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.message.SendInitializeNewProjectDataSharing;
@@ -16,8 +17,11 @@ import de.medizininformatik_initiative.process.data_sharing.message.SendMergeDat
 import de.medizininformatik_initiative.process.data_sharing.message.SendMergedDataSet;
 import de.medizininformatik_initiative.process.data_sharing.message.SendReceipt;
 import de.medizininformatik_initiative.process.data_sharing.message.SendReceivedDataSet;
+import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseConsolidateDataSetsListener;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseDataSetListener;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseMergedDataSetListener;
+import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CheckQuestionnaireConsolidateDataSetsReleaseInput;
+import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CheckReceivedDataSets;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateMissingDataSetsCoordinate;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateReceivedDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.ExtractMergedDataSetUrl;
@@ -160,6 +164,34 @@ public class DataSharingConfig
 	public CommunicateReceivedDataSet communicateReceivedDataSet()
 	{
 		return new CommunicateReceivedDataSet(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public CheckReceivedDataSets checkReceivedDataSets()
+	{
+		return new CheckReceivedDataSets(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public ReleaseConsolidateDataSetsListener releaseConsolidateDataSetsListener()
+	{
+		return new ReleaseConsolidateDataSetsListener(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public CheckQuestionnaireConsolidateDataSetsReleaseInput checkQuestionnaireConsolidateDataSetsReleaseInput()
+	{
+		return new CheckQuestionnaireConsolidateDataSetsReleaseInput(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public SendConsolidateDataSets sendConsolidateDataSets()
+	{
+		return new SendConsolidateDataSets(api);
 	}
 
 	@Bean
