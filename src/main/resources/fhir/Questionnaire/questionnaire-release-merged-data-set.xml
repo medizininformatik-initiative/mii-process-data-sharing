@@ -1,6 +1,6 @@
 <Questionnaire xmlns="http://hl7.org/fhir">
 	<meta>
-		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.0.0"/>
+		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.5.0"/>
 		<tag>
 			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
 			<code value="ALL"/>
@@ -17,11 +17,13 @@
 		<linkId value="business-key"/>
 		<type value="string"/>
 		<text value="The business-key of the process execution"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="user-task-id"/>
 		<type value="string"/>
 		<text value="The user-task-id of the process execution"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="display"/>
@@ -32,10 +34,12 @@
 		<linkId value="data-set-url"/>
 		<type value="url"/>
 		<text value="Please type the URL where the merged data-set can be accessed by researchers."/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="release"/>
 		<type value="string"/>
 		<text value="To confirm the release of the merged data-set please type in the project identifier."/>
+		<required value="true"/>
 	</item>
 </Questionnaire>

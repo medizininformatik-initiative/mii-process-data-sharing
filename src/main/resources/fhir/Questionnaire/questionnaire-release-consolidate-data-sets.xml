@@ -1,6 +1,6 @@
 <Questionnaire xmlns="http://hl7.org/fhir">
 	<meta>
-		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.0.0"/>
+		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.5.0"/>
 		<tag>
 			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
 			<code value="ALL"/>
@@ -17,11 +17,13 @@
 		<linkId value="business-key"/>
 		<type value="string"/>
 		<text value="The business-key of the process execution"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="user-task-id"/>
 		<type value="string"/>
 		<text value="The user-task-id of the process execution"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="display"/>
@@ -32,10 +34,12 @@
 		<linkId value="release"/>
 		<type value="boolean"/>
 		<text value="Should consolidation of data-sets start?"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="extended-extraction-period"/>
 		<type value="string"/>
 		<text value="If consolidation should not start, please set a new extraction period following the ISO 8601 time duration pattern."/>
+		<required value="false"/>
 	</item>
 </Questionnaire>
