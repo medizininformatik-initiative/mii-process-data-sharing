@@ -76,12 +76,12 @@ public class DataSharingConfig
 	private DmsFhirClientConfig dmsFhirClientConfig;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_dataReceive" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
 	@Value("${de.medizininformatik.initiative.dms.private.key:#{null}}")
 	private String dmsPrivateKeyFile;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_dataReceive" }, description = "Location of the DMS public-key as 4096 Bit RSA PEM encoded file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_public_key.pem")
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS public-key as 4096 Bit RSA PEM encoded file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_public_key.pem")
 	@Value("${de.medizininformatik.initiative.dms.public.key:#{null}}")
 	private String dmsPublicKeyFile;
 
