@@ -28,7 +28,7 @@
 	<item>
 		<linkId value="display"/>
 		<type value="display"/>
-		<text value="{project-identifier-placeholder} consolidate data-sets: {new-line-placeholder} This user-task releases the consolidation of data-sets at the DMS {dms-identifier-placeholder} or extends the extraction period. Currently there are data-sets missing from the following DIC: {dic-identifiers-placeholder}"/>
+		<text value="{project-identifier-placeholder} consolidate data-sets: This user-task releases the consolidation of data-sets at the DMS {dms-identifier-placeholder} or extends the extraction period. Currently there are data-sets missing from the following DIC: {dic-identifiers-placeholder}"/>
 	</item>
 	<item>
 		<linkId value="release"/>

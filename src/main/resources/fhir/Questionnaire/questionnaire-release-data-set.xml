@@ -28,7 +28,7 @@
 	<item>
 		<linkId value="display"/>
 		<type value="display"/>
-		<text value="{project-identifier-placeholder} data-set release: {new-line-placeholder} This user-task releases the data-set for the project {project-identifier-placeholder} and the data management site {dms-identifier-placeholder}. Beforehand, please make sure that a DocumentReference with the project identifier as masterIdentifier and a FHIR resource as attachment of the DocumentReference are readable on the FHIR store with base-url {fhir-store-base-url-placeholder}."/>
+		<text value="{project-identifier-placeholder} data-set release: This user-task releases the data-set for the project {project-identifier-placeholder} and the data management site {dms-identifier-placeholder}. Beforehand, please make sure that a DocumentReference with the project identifier as masterIdentifier and a FHIR resource as attachment of the DocumentReference are readable on the FHIR store with base-url {fhir-store-base-url-placeholder}."/>
 	</item>
 	<item>
 		<linkId value="release"/>

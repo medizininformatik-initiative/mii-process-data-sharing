@@ -112,7 +112,6 @@ public interface ConstantsDataSharing
 	String QUESTIONNAIRES_PLACEHOLDER_DIC_IDENTIFIERS = "{dic-identifiers-placeholder}";
 	String QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER = "{dms-identifier-placeholder}";
 	String QUESTIONNAIRES_PLACEHOLDER_FHIR_STORE_BASE_URL = "{fhir-store-base-url-placeholder}";
-	String QUESTIONNAIRES_PLACEHOLDER_NEW_LINE = "{new-line-placeholder}";
 
 	String DATA_EXTRACTION_PERIOD_DEFAULT_VALUE = "P28D";
 	String EXTENDED_DATA_EXTRACTION_PERIOD_DEFAULT_VALUE = "P5D";

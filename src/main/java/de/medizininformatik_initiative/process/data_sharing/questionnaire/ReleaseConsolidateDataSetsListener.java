@@ -90,20 +90,19 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener 
 
 	private String replaceText(String toReplace, String projectIdentifier, String dmsIdentifier, Targets targets)
 	{
-		String dicIdentifiers = "</br> - ";
+		String dicIdentifiers = "";
 
 		if (targets.isEmpty())
 			dicIdentifiers = dicIdentifiers + "There are no missing data-sets";
 		else
-			dicIdentifiers = dicIdentifiers + targets.getEntries().stream().map(Target::getOrganizationIdentifierValue)
-					.collect(Collectors.joining("</br> - "));
+			dicIdentifiers = dicIdentifiers + "[ " + targets.getEntries().stream()
+					.map(Target::getOrganizationIdentifierValue).collect(Collectors.joining(" ; ")) + " ]";
 
 		return toReplace
 				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
-						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "<b>" + dmsIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DIC_IDENTIFIERS, dicIdentifiers)
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_NEW_LINE, "</br>");
+						"\"" + projectIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "\"" + dmsIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DIC_IDENTIFIERS, dicIdentifiers);
 	}
 
 	private void replaceExtendedExtractionPeriodAnswerPlaceholder(

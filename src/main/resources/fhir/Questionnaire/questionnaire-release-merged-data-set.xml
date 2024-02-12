@@ -28,7 +28,7 @@
 	<item>
 		<linkId value="display"/>
 		<type value="display"/>
-		<text value="{project-identifier-placeholder} merged data-set release: {new-line-placeholder} This user-task releases the merged data-set for the project {project-identifier-placeholder} and the german health research platform."/>
+		<text value="{project-identifier-placeholder} merged data-set release: This user-task releases the merged data-set for the project {project-identifier-placeholder} and the german health research platform."/>
 	</item>
 	<item>
 		<linkId value="data-set-url"/>

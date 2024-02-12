@@ -94,10 +94,9 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 	{
 		return toReplace
 				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
-						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "<b>" + dmsIdentifier + "</b>")
+						"\"" + projectIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "\"" + dmsIdentifier + "\"")
 				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_FHIR_STORE_BASE_URL,
-						"<b>" + fhirStoreBaseUrl + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_NEW_LINE, "</br>");
+						"\"" + fhirStoreBaseUrl + "\"");
 	}
 }

@@ -85,9 +85,7 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implem
 
 	private String replaceText(String toReplace, String projectIdentifier)
 	{
-		return toReplace
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
-						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_NEW_LINE, "</br>");
+		return toReplace.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
+				"\"" + projectIdentifier + "\"");
 	}
 }
