@@ -45,9 +45,8 @@ public class CommunicateMissingDataSetsCoordinate extends AbstractServiceDelegat
 	private void log(Target target, String taskId, String projectIdentifier, String dmsIdentifier)
 	{
 		logger.warn(
-				"Missing data-set at DMS '" + dmsIdentifier
-						+ "' from organization '{}' in data-sharing project '{}' and Task with id '{}'",
-				target.getOrganizationIdentifierValue(), projectIdentifier, taskId);
+				"Missing data-set at DMS '{}' from organization '{}' in data-sharing project '{}' and Task with id '{}'",
+				dmsIdentifier, target.getOrganizationIdentifierValue(), projectIdentifier, taskId);
 	}
 
 	private void sendMail(String taskId, Targets targets, String projectIdentifier, String dmsIdentifier)
