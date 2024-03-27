@@ -6,7 +6,7 @@
 			<code value="ALL"/>
 		</tag>
 	</meta>
-	<url value="http://medizininformatik-initiative.de/fhir/Questionnaire/release-data-set"/>
+	<url value="http://medizininformatik-initiative.de/fhir/Questionnaire/release-consolidate-data-sets"/>
 	<!-- version managed by bpe -->
 	<version value="#{version}"/>
 	<!-- date managed by bpe -->
@@ -28,12 +28,18 @@
 	<item>
 		<linkId value="display"/>
 		<type value="display"/>
-		<text value="{project-identifier-placeholder} data-set release: This user-task releases the data-set for the project {project-identifier-placeholder} and the data management site {dms-identifier-placeholder}. Beforehand, please make sure that a DocumentReference with the project identifier as masterIdentifier and a FHIR resource as attachment of the DocumentReference are readable on the FHIR store with base-url {fhir-store-base-url-placeholder}."/>
+		<text value="{project-identifier-placeholder} consolidate data-sets: This user-task releases the consolidation of data-sets at the DMS {dms-identifier-placeholder} or extends the extraction period. Currently there are data-sets missing from the following DIC: {dic-identifiers-placeholder}"/>
 	</item>
 	<item>
 		<linkId value="release"/>
-		<type value="string"/>
-		<text value="To confirm the release of the data-set please type in the project identifier."/>
+		<type value="boolean"/>
+		<text value="Should consolidation of data-sets start?"/>
 		<required value="true"/>
+	</item>
+	<item>
+		<linkId value="extended-extraction-period"/>
+		<type value="string"/>
+		<text value="If consolidation should not start, please set a new extraction period following the ISO 8601 time duration pattern."/>
+		<required value="false"/>
 	</item>
 </Questionnaire>

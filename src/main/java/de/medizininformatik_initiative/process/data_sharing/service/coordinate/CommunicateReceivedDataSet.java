@@ -46,6 +46,9 @@ public class CommunicateReceivedDataSet extends AbstractServiceDelegate
 		Targets newTargets = variables.createTargets(targetsWithoutReceivedIdentifier);
 		variables.setTargets(newTargets);
 
+		if (targetsWithoutReceivedIdentifier.isEmpty())
+			variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_ALL_DATA_SETS_RECEIVED, true);
+
 		latestTask.setStatus(Task.TaskStatus.COMPLETED);
 		api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
 				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)

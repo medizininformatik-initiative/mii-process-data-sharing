@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDeploymentStateListener;
+import de.medizininformatik_initiative.process.data_sharing.message.SendConsolidateDataSets;
 import de.medizininformatik_initiative.process.data_sharing.message.SendDataSet;
 import de.medizininformatik_initiative.process.data_sharing.message.SendExecuteDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.message.SendInitializeNewProjectDataSharing;
@@ -16,8 +17,12 @@ import de.medizininformatik_initiative.process.data_sharing.message.SendMergeDat
 import de.medizininformatik_initiative.process.data_sharing.message.SendMergedDataSet;
 import de.medizininformatik_initiative.process.data_sharing.message.SendReceipt;
 import de.medizininformatik_initiative.process.data_sharing.message.SendReceivedDataSet;
+import de.medizininformatik_initiative.process.data_sharing.message.SendStopExecuteDataSharing;
+import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseConsolidateDataSetsListener;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseDataSetListener;
 import de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseMergedDataSetListener;
+import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CheckQuestionnaireConsolidateDataSetsReleaseInput;
+import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CheckReceivedDataSets;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateMissingDataSetsCoordinate;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateReceivedDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.ExtractMergedDataSetUrl;
@@ -33,6 +38,7 @@ import de.medizininformatik_initiative.process.data_sharing.service.execute.Hand
 import de.medizininformatik_initiative.process.data_sharing.service.execute.PrepareExecution;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ReadDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.SelectDataSetTarget;
+import de.medizininformatik_initiative.process.data_sharing.service.execute.StopReleaseDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.StoreDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ValidateDataSetExecute;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.CheckQuestionnaireMergedDataSetReleaseInput;
@@ -70,12 +76,12 @@ public class DataSharingConfig
 	private DmsFhirClientConfig dmsFhirClientConfig;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_dataReceive" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
 	@Value("${de.medizininformatik.initiative.dms.private.key:#{null}}")
 	private String dmsPrivateKeyFile;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_dataReceive" }, description = "Location of the DMS public-key as 4096 Bit RSA PEM encoded file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_public_key.pem")
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS public-key as 4096 Bit RSA PEM encoded file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_public_key.pem")
 	@Value("${de.medizininformatik.initiative.dms.public.key:#{null}}")
 	private String dmsPublicKeyFile;
 
@@ -164,9 +170,44 @@ public class DataSharingConfig
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public CheckReceivedDataSets checkReceivedDataSets()
+	{
+		return new CheckReceivedDataSets(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public ReleaseConsolidateDataSetsListener releaseConsolidateDataSetsListener()
+	{
+		return new ReleaseConsolidateDataSetsListener(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public CheckQuestionnaireConsolidateDataSetsReleaseInput checkQuestionnaireConsolidateDataSetsReleaseInput()
+	{
+		return new CheckQuestionnaireConsolidateDataSetsReleaseInput(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public SendConsolidateDataSets sendConsolidateDataSets()
+	{
+		return new SendConsolidateDataSets(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CommunicateMissingDataSetsCoordinate communicateMissingDataSetsCoordinate()
 	{
 		return new CommunicateMissingDataSetsCoordinate(api);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public SendStopExecuteDataSharing sendStopExecuteDataSharing()
+	{
+		return new SendStopExecuteDataSharing(api);
 	}
 
 	@Bean
@@ -190,6 +231,13 @@ public class DataSharingConfig
 	public ReleaseDataSetListener releaseDataSetListener()
 	{
 		return new ReleaseDataSetListener(api, dicFhirClientConfig.fhirClientFactory());
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public StopReleaseDataSet stopReleaseDataSet()
+	{
+		return new StopReleaseDataSet(api);
 	}
 
 	@Bean
