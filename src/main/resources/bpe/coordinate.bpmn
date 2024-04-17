@@ -63,7 +63,7 @@
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1gu8xzh" sourceRef="communicateMissingDataSets" targetRef="closeDicDataExtractionPeriod" />
     <bpmn:serviceTask id="communicateMissingDataSets" name="communicate missing data-sets" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateMissingDataSetsCoordinate">
-      <bpmn:incoming>Flow_1uv6myw</bpmn:incoming>
+      <bpmn:incoming>Flow_0fbrabs</bpmn:incoming>
       <bpmn:outgoing>Flow_1gu8xzh</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1d6fc4e" sourceRef="extractMergedDataSetUrl" targetRef="coordinateDataSharingEndEvent" />
@@ -97,15 +97,15 @@
           <camunda:string>http://medizininformatik-initiative.de/bpe/Process/mergeDataSharing|#{version}</camunda:string>
         </camunda:field>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0fbrabs</bpmn:incoming>
-      <bpmn:outgoing>Flow_1uv6myw</bpmn:outgoing>
+      <bpmn:incoming>Flow_1pd65bl</bpmn:incoming>
+      <bpmn:outgoing>Flow_09dddxh</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="Flow_11ehu22" sourceRef="Activity_0tpocde" targetRef="Gateway_0n0cjsj" />
     <bpmn:serviceTask id="Activity_0tpocde" name="check questionnaire input" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.coordinate.CheckQuestionnaireConsolidateDataSetsReleaseInput">
       <bpmn:incoming>Flow_1wufgwv</bpmn:incoming>
       <bpmn:outgoing>Flow_11ehu22</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_0fbrabs" sourceRef="Gateway_0n0cjsj" targetRef="Activity_0rh1hj0">
+    <bpmn:sequenceFlow id="Flow_0fbrabs" sourceRef="Gateway_0n0cjsj" targetRef="communicateMissingDataSets">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${consolidateDataSetReleased}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:intermediateCatchEvent id="timerBoundaryEvent" name="data-extraction period expired">
@@ -136,7 +136,7 @@
     <bpmn:sequenceFlow id="Flow_1hw65h4" sourceRef="communicateReceivedDataSet" targetRef="Activity_0yj2vcp" />
     <bpmn:parallelGateway id="Gateway_0n4qktl">
       <bpmn:incoming>Flow_00ok4yz</bpmn:incoming>
-      <bpmn:incoming>Flow_1lavme2</bpmn:incoming>
+      <bpmn:incoming>Flow_09dddxh</bpmn:incoming>
       <bpmn:outgoing>Flow_1ixijre</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="Flow_00ok4yz" sourceRef="receiveMergedDataSet" targetRef="Gateway_0n4qktl" />
@@ -197,12 +197,12 @@
         </camunda:field>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1gu8xzh</bpmn:incoming>
-      <bpmn:outgoing>Flow_1lavme2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1pd65bl</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics camunda:collection="${targets.entries}" camunda:elementVariable="target" />
     </bpmn:sendTask>
-    <bpmn:sequenceFlow id="Flow_1uv6myw" sourceRef="Activity_0rh1hj0" targetRef="communicateMissingDataSets" />
-    <bpmn:sequenceFlow id="Flow_1lavme2" sourceRef="closeDicDataExtractionPeriod" targetRef="Gateway_0n4qktl" />
     <bpmn:sequenceFlow id="Flow_1ixijre" sourceRef="Gateway_0n4qktl" targetRef="extractMergedDataSetUrl" />
+    <bpmn:sequenceFlow id="Flow_1pd65bl" sourceRef="closeDicDataExtractionPeriod" targetRef="Activity_0rh1hj0" />
+    <bpmn:sequenceFlow id="Flow_09dddxh" sourceRef="Activity_0rh1hj0" targetRef="Gateway_0n4qktl" />
   </bpmn:process>
   <bpmn:message id="Message_2tdo6h2" name="coordinateDataSharing" />
   <bpmn:message id="Message_3lh87td" name="mergedDataSet" />
@@ -248,10 +248,6 @@
         <dc:Bounds x="271" y="347" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_11bajvv_di" bpmnElement="communicateMissingDataSets">
-        <dc:Bounds x="2130" y="234" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0yxyi07_di" bpmnElement="extractMergedDataSetUrl">
         <dc:Bounds x="2470" y="347" width="100" height="80" />
         <bpmndi:BPMNLabel />
@@ -261,10 +257,6 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1kuyacp_di" bpmnElement="Activity_0cufu8w">
         <dc:Bounds x="1510" y="234" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_1avdssh" bpmnElement="Activity_0rh1hj0">
-        <dc:Bounds x="1960" y="234" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0vjpj4d_di" bpmnElement="Activity_0tpocde">
@@ -310,12 +302,20 @@
       <bpmndi:BPMNShape id="Activity_0a9hxkv_di" bpmnElement="Activity_0yj2vcp">
         <dc:Bounds x="1570" y="620" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0vr9wqd_di" bpmnElement="closeDicDataExtractionPeriod">
+      <bpmndi:BPMNShape id="Activity_11bajvv_di" bpmnElement="communicateMissingDataSets">
+        <dc:Bounds x="1950" y="234" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1avdssh" bpmnElement="Activity_0rh1hj0">
         <dc:Bounds x="2310" y="234" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vr9wqd_di" bpmnElement="closeDicDataExtractionPeriod">
+        <dc:Bounds x="2125" y="234" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1qtoak9_di" bpmnElement="coordinateSendConsolidateError">
-        <dc:Bounds x="1942" y="296" width="36" height="36" />
+        <dc:Bounds x="2292" y="296" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_031nt59_di" bpmnElement="Flow_031nt59">
         <di:waypoint x="209" y="387" />
@@ -338,8 +338,8 @@
         <di:waypoint x="431" y="387" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1gu8xzh_di" bpmnElement="Flow_1gu8xzh">
-        <di:waypoint x="2230" y="274" />
-        <di:waypoint x="2310" y="274" />
+        <di:waypoint x="2050" y="274" />
+        <di:waypoint x="2125" y="274" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1d6fc4e_di" bpmnElement="Flow_1d6fc4e">
         <di:waypoint x="2570" y="387" />
@@ -355,7 +355,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0fbrabs_di" bpmnElement="Flow_0fbrabs">
         <di:waypoint x="1885" y="274" />
-        <di:waypoint x="1960" y="274" />
+        <di:waypoint x="1950" y="274" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0133tn1_di" bpmnElement="Flow_0133tn1">
         <di:waypoint x="1318" y="660" />
@@ -430,22 +430,22 @@
         <di:waypoint x="1325" y="570" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0f49a4o_di" bpmnElement="Flow_0f49a4o">
-        <di:waypoint x="1960" y="332" />
-        <di:waypoint x="1960" y="370" />
-        <di:waypoint x="1560" y="370" />
+        <di:waypoint x="2310" y="332" />
+        <di:waypoint x="2310" y="360" />
+        <di:waypoint x="1560" y="360" />
         <di:waypoint x="1560" y="314" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1uv6myw_di" bpmnElement="Flow_1uv6myw">
-        <di:waypoint x="2060" y="274" />
-        <di:waypoint x="2130" y="274" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1lavme2_di" bpmnElement="Flow_1lavme2">
-        <di:waypoint x="2360" y="314" />
-        <di:waypoint x="2360" y="362" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ixijre_di" bpmnElement="Flow_1ixijre">
         <di:waypoint x="2385" y="387" />
         <di:waypoint x="2470" y="387" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pd65bl_di" bpmnElement="Flow_1pd65bl">
+        <di:waypoint x="2225" y="274" />
+        <di:waypoint x="2310" y="274" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09dddxh_di" bpmnElement="Flow_09dddxh">
+        <di:waypoint x="2360" y="314" />
+        <di:waypoint x="2360" y="362" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
