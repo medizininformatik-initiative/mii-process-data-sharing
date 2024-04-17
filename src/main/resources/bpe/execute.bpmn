@@ -129,7 +129,7 @@
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_0mill5i" sourceRef="executeDataSharingSendError" targetRef="deleteDataSetErrorSend" />
     <bpmn:sequenceFlow id="Flow_1hl6boh" sourceRef="deleteDataSetErrorSend" targetRef="handleErrorExecute" />
-    <bpmn:intermediateCatchEvent id="waitForRetrieval" name="wait">
+    <bpmn:intermediateCatchEvent id="waitForRetrieval" name="wait&#10;(45 minutes)">
       <bpmn:incoming>Flow_1txtbeg</bpmn:incoming>
       <bpmn:outgoing>Flow_1c71l1d</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_0f9vpum">
@@ -254,7 +254,7 @@
       <bpmndi:BPMNShape id="Event_1mhzwqb_di" bpmnElement="waitForRetrieval">
         <dc:Bounds x="2462" y="162" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2470" y="203" width="20" height="14" />
+          <dc:Bounds x="2449" y="203" width="62" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1krcx4x_di" bpmnElement="Gateway_06nlp4x">
