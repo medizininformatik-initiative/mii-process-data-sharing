@@ -1,18 +1,15 @@
 package de.medizininformatik_initiative.process.data_sharing.service.coordinate;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
 import dev.dsf.bpe.v1.variables.Variables;
 
 public class CheckReceivedDataSets extends AbstractServiceDelegate
 {
-	private static final Logger logger = LoggerFactory.getLogger(CheckReceivedDataSets.class);
-
 	public CheckReceivedDataSets(ProcessPluginApi api)
 	{
 		super(api);
