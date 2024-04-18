@@ -1,37 +1,22 @@
 package de.medizininformatik_initiative.process.data_sharing.questionnaire;
 
-import java.util.Objects;
-
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
-import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
-import dev.dsf.bpe.v1.service.FhirWebserviceClientProvider;
-import dev.dsf.bpe.v1.service.MailService;
 
-public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implements InitializingBean
+public class ReleaseMergedDataSetListener extends DefaultUserTaskListener
 {
-	private final FhirWebserviceClientProvider fhirDsfClientProvider;
-	private final MailService mailService;
+	private final ProcessPluginApi api;
 
 	public ReleaseMergedDataSetListener(ProcessPluginApi api)
 	{
 		super(api);
-		this.fhirDsfClientProvider = api.getFhirWebserviceClientProvider();
-		this.mailService = api.getMailService();
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception
-	{
-		super.afterPropertiesSet();
-		Objects.requireNonNull(fhirDsfClientProvider, "fhirDsfClientProvider");
-		Objects.requireNonNull(mailService, "mailService");
+		this.api = api;
 	}
 
 	@Override
@@ -52,7 +37,7 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implem
 	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
 	{
 		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(fhirDsfClientProvider.getLocalWebserviceClient().getBaseUrl(),
+		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
 				id.getResourceType(), id.getIdPart(), null);
 
 		String projectIdentifier = (String) userTask.getExecution()
@@ -64,7 +49,7 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener implem
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
 				+ absoluteId.getValue();
 
-		mailService.send(subject, message);
+		api.getMailService().send(subject, message);
 	}
 
 	private void replace(QuestionnaireResponse.QuestionnaireResponseItemComponent item, String projectIdentifier)
