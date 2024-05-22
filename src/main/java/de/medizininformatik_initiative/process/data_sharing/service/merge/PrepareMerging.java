@@ -53,7 +53,7 @@ public class PrepareMerging extends AbstractServiceDelegate
 		variables.setTargets(targets);
 
 		logger.info(
-				"Starting data-set reception and merging of approved data sharing project [project-identifier: {} ; contract-url: {} ; researchers: {} ; dic: {} ; task-id: {}]",
+				"Starting data-set reception and merging of approved data sharing project [project-identifier: {}; contract-url: {}; researchers: {}; dic: {}; task-id: {}]",
 				projectIdentifier, contractUrl, String.join(",", researcherIdentifiers), targets.getEntries().stream()
 						.map(Target::getOrganizationIdentifierValue).collect(Collectors.joining(",")),
 				task.getId());

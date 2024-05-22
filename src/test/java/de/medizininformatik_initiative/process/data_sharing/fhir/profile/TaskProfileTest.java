@@ -2,8 +2,8 @@ package de.medizininformatik_initiative.process.data_sharing.fhir.profile;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.hl7.fhir.r4.model.Identifier;
@@ -39,14 +39,14 @@ public class TaskProfileTest
 	@ClassRule
 	public static final ValidationSupportRule validationRule = new ValidationSupportRule(def.getResourceVersion(),
 			def.getResourceReleaseDate(),
-			Arrays.asList("dsf-task-base-1.0.0.xml", "extension-dic-identifier.xml",
-					"extension-data-set-status-error.xml", "task-consolidate-data-sets.xml",
-					"task-coordinate-data-sharing.xml", "task-execute-data-sharing.xml", "task-merge-data-sharing.xml",
-					"task-send-data-set.xml", "task-status-data-set.xml", "task-merged-data-set.xml",
-					"task-received-data-set.xml", "task-stop-execute-data-sharing.xml"),
-			Arrays.asList("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
+			List.of("dsf-task-base-1.0.0.xml", "extension-dic-identifier.xml", "extension-data-set-status-error.xml",
+					"task-consolidate-data-sets.xml", "task-coordinate-data-sharing.xml",
+					"task-execute-data-sharing.xml", "task-merge-data-sharing.xml", "task-send-data-set.xml",
+					"task-status-data-set.xml", "task-merged-data-set.xml", "task-received-data-set.xml",
+					"task-stop-execute-data-sharing.xml"),
+			List.of("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
 					"mii-cryptography.xml", "mii-data-set-status.xml"),
-			Arrays.asList("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
+			List.of("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
 					"mii-cryptography.xml", "mii-data-set-status-receive.xml", "mii-data-set-status-send.xml"));
 
 	private final ResourceValidator resourceValidator = new ResourceValidatorImpl(validationRule.getFhirContext(),
