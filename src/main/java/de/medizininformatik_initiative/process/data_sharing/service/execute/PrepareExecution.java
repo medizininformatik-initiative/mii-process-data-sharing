@@ -38,7 +38,7 @@ public class PrepareExecution extends AbstractServiceDelegate
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL, contractUrl);
 
 		logger.info(
-				"Starting extraction and transfer of approved data sharing project [project-identifier: {} ; dms: {} ; contract-url: {} ; task-id: {}]",
+				"Starting extraction and transfer of approved data sharing project [project-identifier: {}; dms: {}; contract-url: {}; task-id: {}]",
 				projectIdentifier, dmsIdentifier, contractUrl, task.getId());
 	}
 

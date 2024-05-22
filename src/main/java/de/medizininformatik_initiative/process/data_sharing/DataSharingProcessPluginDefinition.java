@@ -1,7 +1,6 @@
 package de.medizininformatik_initiative.process.data_sharing;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -86,12 +85,12 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 
 		return Map.of( //
 				ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING, //
-				Arrays.asList(aCoo, cDaSh, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
+				List.of(aCoo, cDaSh, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING, //
-				Arrays.asList(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
+				List.of(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
 						vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING, //
-				Arrays.asList(aMer, cDaSeSt, cCrypto, cDaSh, eDaSeStEr, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
+				List.of(aMer, cDaSeSt, cCrypto, cDaSh, eDaSeStEr, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
 						vCrypto, vDaSeStRe, vDaSh));
 	}
 }

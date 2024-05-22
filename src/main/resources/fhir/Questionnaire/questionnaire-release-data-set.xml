@@ -1,6 +1,6 @@
 <Questionnaire xmlns="http://hl7.org/fhir">
 	<meta>
-		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.0.0"/>
+		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire|1.5.0"/>
 		<tag>
 			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
 			<code value="ALL"/>
@@ -17,20 +17,23 @@
 		<linkId value="business-key"/>
 		<type value="string"/>
 		<text value="The business-key of the process execution"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="user-task-id"/>
 		<type value="string"/>
 		<text value="The user-task-id of the process execution"/>
+		<required value="true"/>
 	</item>
 	<item>
 		<linkId value="display"/>
 		<type value="display"/>
-		<text value="{project-identifier-placeholder} data-set release: {new-line-placeholder} This user-task releases the data-set for the project {project-identifier-placeholder} and the data management site {dms-identifier-placeholder}. Beforehand, please make sure that a DocumentReference with the project identifier as masterIdentifier and a FHIR resource as attachment of the DocumentReference are readable on the FHIR store with base-url {fhir-store-base-url-placeholder}."/>
+		<text value="{project-identifier-placeholder} data-set release: This user-task releases the data-set for the project {project-identifier-placeholder} and the data management site {dms-identifier-placeholder}. Beforehand, please make sure that a DocumentReference with the project identifier as masterIdentifier and a FHIR resource as attachment of the DocumentReference are readable on the FHIR store with base-url {fhir-store-base-url-placeholder}."/>
 	</item>
 	<item>
 		<linkId value="release"/>
 		<type value="string"/>
 		<text value="To confirm the release of the data-set please type in the project identifier."/>
+		<required value="true"/>
 	</item>
 </Questionnaire>

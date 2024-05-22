@@ -53,7 +53,7 @@ public class PrepareCoordination extends AbstractServiceDelegate
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER, dmsIdentifier);
 
 		logger.info(
-				"Starting coordination of approved data-sharing project [project-identifier: {} ; contract-url: {} ; extraction-period: {} ; researchers: {} ; dic: {} ; dms: {} ; task-id: {}]",
+				"Starting coordination of approved data-sharing project [project-identifier: {}; contract-url: {}; extraction-period: {}; researchers: {}; dic: {}; dms: {}; task-id: {}]",
 				projectIdentifier, contractUrl, extractionPeriod, String.join(",", researcherIdentifiers),
 				dicIdentifiers, dmsIdentifier, task.getId());
 	}

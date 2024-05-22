@@ -1,6 +1,5 @@
 package de.medizininformatik_initiative.process.data_sharing.questionnaire;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -8,35 +7,22 @@ import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
-import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
 import dev.dsf.bpe.v1.constants.BpmnExecutionVariables;
-import dev.dsf.bpe.v1.service.FhirWebserviceClientProvider;
-import dev.dsf.bpe.v1.service.MailService;
 import dev.dsf.bpe.v1.variables.Target;
 import dev.dsf.bpe.v1.variables.Targets;
 
-public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener implements InitializingBean
+public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 {
-	private final FhirWebserviceClientProvider fhirDsfClientProvider;
-	private final MailService mailService;
+	private final ProcessPluginApi api;
 
 	public ReleaseConsolidateDataSetsListener(ProcessPluginApi api)
 	{
 		super(api);
-		this.fhirDsfClientProvider = api.getFhirWebserviceClientProvider();
-		this.mailService = api.getMailService();
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception
-	{
-		super.afterPropertiesSet();
-		Objects.requireNonNull(fhirDsfClientProvider, "fhirDsfClientProvider");
-		Objects.requireNonNull(mailService, "mailService");
+		this.api = api;
 	}
 
 	@Override
@@ -69,7 +55,7 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener 
 	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
 	{
 		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(fhirDsfClientProvider.getLocalWebserviceClient().getBaseUrl(),
+		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
 				id.getResourceType(), id.getIdPart(), null);
 
 		String projectIdentifier = (String) userTask.getExecution()
@@ -85,25 +71,24 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener 
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
 				+ absoluteId.getValue();
 
-		mailService.send(subject, message);
+		api.getMailService().send(subject, message);
 	}
 
 	private String replaceText(String toReplace, String projectIdentifier, String dmsIdentifier, Targets targets)
 	{
-		String dicIdentifiers = "</br> - ";
+		String dicIdentifiers = "";
 
 		if (targets.isEmpty())
 			dicIdentifiers = dicIdentifiers + "There are no missing data-sets";
 		else
-			dicIdentifiers = dicIdentifiers + targets.getEntries().stream().map(Target::getOrganizationIdentifierValue)
-					.collect(Collectors.joining("</br> - "));
+			dicIdentifiers = dicIdentifiers + "[ " + targets.getEntries().stream()
+					.map(Target::getOrganizationIdentifierValue).collect(Collectors.joining(" ; ")) + " ]";
 
 		return toReplace
 				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
-						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "<b>" + dmsIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DIC_IDENTIFIERS, dicIdentifiers)
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_NEW_LINE, "</br>");
+						"\"" + projectIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "\"" + dmsIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DIC_IDENTIFIERS, dicIdentifiers);
 	}
 
 	private void replaceExtendedExtractionPeriodAnswerPlaceholder(

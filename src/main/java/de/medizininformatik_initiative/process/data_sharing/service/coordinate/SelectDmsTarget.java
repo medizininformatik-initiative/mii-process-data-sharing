@@ -13,12 +13,10 @@ import dev.dsf.bpe.v1.variables.Variables;
 
 public class SelectDmsTarget extends AbstractServiceDelegate
 {
-
 	public SelectDmsTarget(ProcessPluginApi api)
 	{
 		super(api);
 	}
-
 
 	@Override
 	protected void doExecute(DelegateExecution execution, Variables variables)

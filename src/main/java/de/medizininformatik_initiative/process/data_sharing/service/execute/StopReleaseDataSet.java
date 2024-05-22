@@ -23,7 +23,7 @@ public class StopReleaseDataSet extends AbstractServiceDelegate
 	protected void doExecute(DelegateExecution execution, Variables variables)
 	{
 		logger.info(
-				"Extraction and transfer period of approved data sharing project was closed [project-identifier: {} ; dms: {} ; contract-url: {} ; task-id: {}]",
+				"Extraction and transfer period of approved data sharing project was closed [project-identifier: {}; dms: {}; contract-url: {}; task-id: {}]",
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER),
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL),
