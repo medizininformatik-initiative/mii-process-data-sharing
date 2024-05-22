@@ -1,5 +1,7 @@
 package de.medizininformatik_initiative.process.data_sharing.service.coordinate;
 
+import java.util.List;
+
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -35,6 +37,12 @@ public class CommunicateMissingDataSetsCoordinate extends AbstractServiceDelegat
 		logMissingDataSets(targets, taskId, projectIdentifier, dmsIdentifier);
 		sendMail(taskId, targets, projectIdentifier, dmsIdentifier);
 		outputMissingDataSets(variables, targets);
+
+		// needed for correlation to work when sending stop execute data sharing message
+		List<Target> targetsWithoutCorrelationKey = targets.getEntries().stream().map(t -> variables
+				.createTarget(t.getOrganizationIdentifierValue(), t.getEndpointIdentifierValue(), t.getEndpointUrl()))
+				.toList();
+		variables.setTargets(variables.createTargets(targetsWithoutCorrelationKey));
 	}
 
 	private void logMissingDataSets(Targets targets, String taskId, String projectIdentifier, String dmsIdentifier)

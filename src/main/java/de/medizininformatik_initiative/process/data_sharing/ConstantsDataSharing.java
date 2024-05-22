@@ -30,6 +30,11 @@ public interface ConstantsDataSharing
 			+ PROCESS_NAME_EXECUTE_DATA_SHARING;
 	String PROFILE_TASK_EXECUTE_DATA_SHARING_MESSAGE_NAME = "executeDataSharing";
 
+	String PROFILE_TASK_STOP_EXECUTE_DATA_SHARING = "http://medizininformatik-initiative.de/fhir/StructureDefinition/task-stop-execute-data-sharing";
+	String PROFILE_TASK_STOP_EXECUTE_DATA_SHARING_PROCESS_URI = ConstantsBase.PROCESS_MII_URI_BASE
+			+ PROCESS_NAME_EXECUTE_DATA_SHARING;
+	String PROFILE_TASK_STOP_EXECUTE_DATA_SHARING_MESSAGE_NAME = "stopExecuteDataSharing";
+
 	String PROFILE_TASK_MERGE_DATA_SHARING = "http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing";
 	String PROFILE_TASK_MERGE_DATA_SHARING_PROCESS_URI = ConstantsBase.PROCESS_MII_URI_BASE
 			+ PROCESS_NAME_MERGE_DATA_SHARING;
@@ -64,6 +69,7 @@ public interface ConstantsDataSharing
 	String BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER = "dmsIdentifier";
 	String BPMN_EXECUTION_VARIABLE_DOCUMENT_REFERENCE = "documentReference";
 	String BPMN_EXECUTION_VARIABLE_DATA_RESOURCE = "dataResource";
+	String BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE = "releaseDataSetInitialQuestionnaireResponse";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET = "dataSet";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_ENCRYPTED = "dataSetEncrypted";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE = "dataSetReference";
