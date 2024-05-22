@@ -44,7 +44,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 
 	private void sendMail(Task startTask, String code, String dmsIdentifier, String projectIdentifier, String error)
 	{
-		logger.warn("{} - creating new user-startTask 'release-data-set'", error);
+		logger.warn("{} - creating new user-task 'release-data-set'", error);
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
 		String message = "Could not send data-set in process '"
@@ -62,7 +62,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 		if (task != null)
 		{
 			return task.getInput().stream().filter(o -> o.getValue() instanceof Coding).map(o -> (Coding) o.getValue())
-					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(c -> c.getCode())
+					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(Coding::getCode)
 					.findFirst();
 		}
 		else

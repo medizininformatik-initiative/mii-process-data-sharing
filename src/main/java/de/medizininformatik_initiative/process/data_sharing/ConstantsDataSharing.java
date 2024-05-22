@@ -15,6 +15,11 @@ public interface ConstantsDataSharing
 
 	String PROCESS_NAME_FULL_MERGE_DATA_SHARING = ConstantsBase.PROCESS_MII_NAME_BASE + PROCESS_NAME_MERGE_DATA_SHARING;
 
+	String PROFILE_TASK_CONSOLIDATE_DATA_SETS = "http://medizininformatik-initiative.de/fhir/StructureDefinition/task-consolidate-data-sets";
+	String PROFILE_TASK_CONSOLIDATE_DATA_SETS_PROCESS_URI = ConstantsBase.PROCESS_MII_URI_BASE
+			+ PROCESS_NAME_MERGE_DATA_SHARING;
+	String PROFILE_TASK_CONSOLIDATE_DATA_SETS_MESSAGE_NAME = "consolidateDataSets";
+
 	String PROFILE_TASK_COORDINATE_DATA_SHARING = "http://medizininformatik-initiative.de/fhir/StructureDefinition/task-coordinate-data-sharing";
 	String PROFILE_TASK_COORDINATE_DATA_SHARING_PROCESS_URI = ConstantsBase.PROCESS_MII_URI_BASE
 			+ PROCESS_NAME_COORDINATE_DATA_SHARING;
@@ -63,6 +68,10 @@ public interface ConstantsDataSharing
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_ENCRYPTED = "dataSetEncrypted";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE = "dataSetReference";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_URL = "dataSetUrl";
+	String BPMN_EXECUTION_VARIABLE_CONSOLIDATE_DATA_SETS_RELEASED = "consolidateDataSetReleased";
+	String BPMN_EXECUTION_VARIABLE_ALL_DATA_SETS_RECEIVED = "allDataSetsReceived";
+
+	String BPMN_EXECUTION_VARIABLE_DATA_SHARING_COORDINATE_ERROR = "coordinateDataSharingError";
 	String BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR = "executeDataSharingError";
 	String BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE = "executeDataSharingErrorMessage";
 	String BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR = "mergeReceiveDataSharingError";
@@ -89,13 +98,16 @@ public interface ConstantsDataSharing
 
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS = "data-set-status";
 
-	String QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_RELEASE = "release";
-	String QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DATA_SET_URL = "data-set-url";
-	String QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DISPLAY = "display";
-	String QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_PROJECT_IDENTIFIER = "{project-identifier-placeholder}";
-	String QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_DMS_IDENTIFIER = "{dms-identifier-placeholder}";
-	String QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_FHIR_STORE_BASE_URL = "{fhir-store-base-url-placeholder}";
-	String QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_NEW_LINE = "{new-line-placeholder}";
+	String QUESTIONNAIRES_ITEM_DISPLAY = "display";
+	String QUESTIONNAIRES_ITEM_RELEASE = "release";
+	String QUESTIONNAIRES_ITEM_EXTENDED_EXTRACTION_PERIOD = "extended-extraction-period";
+	String QUESTIONNAIRES_ITEM_DATA_SET_URL = "data-set-url";
+	String QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER = "{project-identifier-placeholder}";
+	String QUESTIONNAIRES_PLACEHOLDER_DIC_IDENTIFIERS = "{dic-identifiers-placeholder}";
+	String QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER = "{dms-identifier-placeholder}";
+	String QUESTIONNAIRES_PLACEHOLDER_FHIR_STORE_BASE_URL = "{fhir-store-base-url-placeholder}";
+	String QUESTIONNAIRES_PLACEHOLDER_NEW_LINE = "{new-line-placeholder}";
 
 	String DATA_EXTRACTION_PERIOD_DEFAULT_VALUE = "P28D";
+	String EXTENDED_DATA_EXTRACTION_PERIOD_DEFAULT_VALUE = "P5D";
 }
