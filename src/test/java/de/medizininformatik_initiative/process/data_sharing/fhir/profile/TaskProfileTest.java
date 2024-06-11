@@ -2,8 +2,8 @@ package de.medizininformatik_initiative.process.data_sharing.fhir.profile;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.hl7.fhir.r4.model.Identifier;
@@ -39,13 +39,14 @@ public class TaskProfileTest
 	@ClassRule
 	public static final ValidationSupportRule validationRule = new ValidationSupportRule(def.getResourceVersion(),
 			def.getResourceReleaseDate(),
-			Arrays.asList("dsf-task-base-1.0.0.xml", "extension-dic-identifier.xml",
-					"extension-data-set-status-error.xml", "task-coordinate-data-sharing.xml",
+			List.of("dsf-task-base-1.0.0.xml", "extension-dic-identifier.xml", "extension-data-set-status-error.xml",
+					"task-consolidate-data-sets.xml", "task-coordinate-data-sharing.xml",
 					"task-execute-data-sharing.xml", "task-merge-data-sharing.xml", "task-send-data-set.xml",
-					"task-status-data-set.xml", "task-merged-data-set.xml", "task-received-data-set.xml"),
-			Arrays.asList("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
+					"task-status-data-set.xml", "task-merged-data-set.xml", "task-received-data-set.xml",
+					"task-stop-execute-data-sharing.xml"),
+			List.of("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
 					"mii-cryptography.xml", "mii-data-set-status.xml"),
-			Arrays.asList("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
+			List.of("dsf-read-access-tag-1.0.0.xml", "dsf-bpmn-message-1.0.0.xml", "data-sharing.xml",
 					"mii-cryptography.xml", "mii-data-set-status-receive.xml", "mii-data-set-status-send.xml"));
 
 	private final ResourceValidator resourceValidator = new ResourceValidatorImpl(validationRule.getFhirContext(),
@@ -251,10 +252,6 @@ public class TaskProfileTest
 				.addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL);
 
-		task.addInput().setValue(new StringType("P28D")).getType().addCoding()
-				.setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_EXTRACTION_PERIOD);
-
 		task.addInput()
 				.setValue(new Identifier().setSystem(ConstantsDataSharing.NAMINGSYSTEM_RESEARCHER_IDENTIFIER)
 						.setValue("Test_Researcher1"))
@@ -428,6 +425,75 @@ public class TaskProfileTest
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DIC_IDENTIFIER);
+
+		return task;
+	}
+
+	@Test
+	public void testValidTaskConsolidateDataSets()
+	{
+		Task task = createValidTaskConsolidateDataSets();
+
+		ValidationResult result = resourceValidator.validate(task);
+		ValidationSupportRule.logValidationMessages(logger, result);
+
+		assertEquals(0, result.getMessages().stream().filter(m -> ResultSeverityEnum.ERROR.equals(m.getSeverity())
+				|| ResultSeverityEnum.FATAL.equals(m.getSeverity())).count());
+	}
+
+	private Task createValidTaskConsolidateDataSets()
+	{
+		Task task = new Task();
+		task.getMeta().addProfile(ConstantsDataSharing.PROFILE_TASK_CONSOLIDATE_DATA_SETS);
+		task.setInstantiatesCanonical(
+				ConstantsDataSharing.PROFILE_TASK_CONSOLIDATE_DATA_SETS_PROCESS_URI + "|" + def.getResourceVersion());
+		task.setStatus(TaskStatus.REQUESTED);
+		task.setIntent(TaskIntent.ORDER);
+		task.setAuthoredOn(new Date());
+		task.getRequester().setType(ResourceType.Organization.name())
+				.setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_HRP"));
+		task.getRestriction().addRecipient().setType(ResourceType.Organization.name())
+				.setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DMS"));
+		task.addInput().setValue(new StringType(ConstantsDataSharing.PROFILE_TASK_CONSOLIDATE_DATA_SETS_MESSAGE_NAME))
+				.getType().addCoding(CodeSystems.BpmnMessage.messageName());
+		task.addInput().setValue(new StringType(UUID.randomUUID().toString())).getType()
+				.addCoding(CodeSystems.BpmnMessage.businessKey());
+
+		return task;
+	}
+
+	@Test
+	public void testValidTaskStopExecuteDataSharing()
+	{
+		Task task = createValidTaskStopExecuteDataSharing();
+
+		ValidationResult result = resourceValidator.validate(task);
+		ValidationSupportRule.logValidationMessages(logger, result);
+
+		assertEquals(0, result.getMessages().stream().filter(m -> ResultSeverityEnum.ERROR.equals(m.getSeverity())
+				|| ResultSeverityEnum.FATAL.equals(m.getSeverity())).count());
+	}
+
+	private Task createValidTaskStopExecuteDataSharing()
+	{
+		Task task = new Task();
+		task.getMeta().addProfile(ConstantsDataSharing.PROFILE_TASK_STOP_EXECUTE_DATA_SHARING);
+		task.setInstantiatesCanonical(ConstantsDataSharing.PROFILE_TASK_STOP_EXECUTE_DATA_SHARING_PROCESS_URI + "|"
+				+ def.getResourceVersion());
+		task.setStatus(TaskStatus.REQUESTED);
+		task.setIntent(TaskIntent.ORDER);
+		task.setAuthoredOn(new Date());
+		task.getRequester().setType(ResourceType.Organization.name())
+				.setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_HRP"));
+		task.getRestriction().addRecipient().setType(ResourceType.Organization.name())
+				.setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC"));
+		task.addInput()
+				.setValue(new StringType(ConstantsDataSharing.PROFILE_TASK_STOP_EXECUTE_DATA_SHARING_MESSAGE_NAME))
+				.getType().addCoding(CodeSystems.BpmnMessage.messageName());
+		task.addInput().setValue(new StringType(UUID.randomUUID().toString())).getType()
+				.addCoding(CodeSystems.BpmnMessage.businessKey());
+		task.addInput().setValue(new StringType(UUID.randomUUID().toString())).getType()
+				.addCoding(CodeSystems.BpmnMessage.correlationKey());
 
 		return task;
 	}

@@ -9,6 +9,8 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.UrlType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
@@ -20,6 +22,8 @@ import dev.dsf.fhir.client.FhirWebserviceClient;
 
 public class SendExecuteDataSharing extends AbstractTaskMessageSend
 {
+	private static final Logger logger = LoggerFactory.getLogger(SendExecuteDataSharing.class);
+
 	public SendExecuteDataSharing(ProcessPluginApi api)
 	{
 		super(api);
@@ -44,9 +48,33 @@ public class SendExecuteDataSharing extends AbstractTaskMessageSend
 	@Override
 	protected IdType doSend(FhirWebserviceClient client, Task task)
 	{
-		return client.withMinimalReturn()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-				.create(task);
+		try
+		{
+			return client.withMinimalReturn()
+					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
+					.create(task);
+		}
+		catch (Exception exception)
+		{
+			String taskJson = api.getFhirContext().newJsonParser().encodeResourceToString(task);
+			String recipient = task.getRestriction().getRecipient().stream().filter(Reference::hasIdentifier)
+					.map(r -> r.getIdentifier().getValue()).findFirst().orElse("unknown");
+			String projectIdentifier = task.getInput().stream()
+					.filter(i -> i.getType().getCoding().stream()
+							.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
+									&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER
+											.equals(c.getCode())))
+					.filter(Task.ParameterComponent::hasValue).map(Task.ParameterComponent::getValue)
+					.filter(t -> t instanceof Identifier).map(t -> (Identifier) t).map(Identifier::getValue).findFirst()
+					.orElse("unknown");
+
+			logger.warn(
+					"Could not start data extraction process at DIC with identifier '{}' for project-identifier '{}' "
+							+ "- task json for later attempt: {}",
+					recipient, projectIdentifier, taskJson);
+
+			throw exception;
+		}
 	}
 
 	private Task.ParameterComponent getDmsIdentifierInput(String dmsIdentifier)

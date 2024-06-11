@@ -176,7 +176,7 @@ public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend
 	private Task createTask(String profile, String instantiatesCanonical, String messageName, String businessKey)
 	{
 		Task task = new Task();
-		task.setMeta((new Meta()).addProfile(profile));
+		task.setMeta(new Meta().addProfile(profile));
 		task.setStatus(Task.TaskStatus.REQUESTED);
 		task.setIntent(Task.TaskIntent.ORDER);
 		task.setAuthoredOn(new Date());

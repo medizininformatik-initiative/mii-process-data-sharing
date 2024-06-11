@@ -11,6 +11,8 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.UrlType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.variables.Researchers;
@@ -25,6 +27,8 @@ import dev.dsf.fhir.client.FhirWebserviceClient;
 
 public class SendMergeDataSharing extends AbstractTaskMessageSend
 {
+	private static final Logger logger = LoggerFactory.getLogger(SendMergeDataSharing.class);
+
 	public SendMergeDataSharing(ProcessPluginApi api)
 	{
 		super(api);
@@ -40,11 +44,7 @@ public class SendMergeDataSharing extends AbstractTaskMessageSend
 		String contractUrl = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL);
 		Task.ParameterComponent contractUrlInput = getContractUrlInput(contractUrl);
 
-		String extractionPeriod = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_EXTRACTION_PERIOD);
-		Task.ParameterComponent extractionPeriodInput = getExtractionPeriodInput(extractionPeriod);
-
-		Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput, contractUrlInput,
-				extractionPeriodInput);
+		Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput, contractUrlInput);
 
 		List<String> researcherIdentifiers = ((Researchers) variables
 				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS)).getEntries();
@@ -85,16 +85,6 @@ public class SendMergeDataSharing extends AbstractTaskMessageSend
 		contractUrlInput.setValue(new UrlType(contractUrl));
 
 		return contractUrlInput;
-	}
-
-	private Task.ParameterComponent getExtractionPeriodInput(String extractionPeriod)
-	{
-		Task.ParameterComponent extractionPeriodInput = new Task.ParameterComponent();
-		extractionPeriodInput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_EXTRACTION_PERIOD);
-		extractionPeriodInput.setValue(new StringType(extractionPeriod));
-
-		return extractionPeriodInput;
 	}
 
 	private Stream<Task.ParameterComponent> getResearcherIdentifierInputs(List<String> researchers)

@@ -12,20 +12,16 @@ import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing
 import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
-import dev.dsf.bpe.v1.service.FhirWebserviceClientProvider;
-import dev.dsf.bpe.v1.service.MailService;
 
 public class ReleaseDataSetListener extends DefaultUserTaskListener implements InitializingBean
 {
+	private final ProcessPluginApi api;
 	private final FhirClientFactory fhirStoreClientFactory;
-	private final FhirWebserviceClientProvider fhirDsfClientProvider;
-	private final MailService mailService;
 
 	public ReleaseDataSetListener(ProcessPluginApi api, FhirClientFactory fhirClientFactory)
 	{
 		super(api);
-		this.mailService = api.getMailService();
-		this.fhirDsfClientProvider = api.getFhirWebserviceClientProvider();
+		this.api = api;
 		this.fhirStoreClientFactory = fhirClientFactory;
 	}
 
@@ -34,8 +30,6 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 	{
 		super.afterPropertiesSet();
 		Objects.requireNonNull(fhirStoreClientFactory, "fhirClientFactory");
-		Objects.requireNonNull(fhirDsfClientProvider, "fhirDsfClientProvider");
-		Objects.requireNonNull(mailService, "mailService");
 	}
 
 	@Override
@@ -48,8 +42,8 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 		String fhirStoreBaseUrl = fhirStoreClientFactory.getFhirClient().getFhirBaseUrl();
 
 		questionnaireResponse.getItem().stream()
-				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_DISPLAY.equals(i.getLinkId())
-						|| ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_ITEM_RELEASE.equals(i.getLinkId()))
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId())
+						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasText)
 				.forEach(i -> replace(i, projectIdentifier, dmsIdentifier, fhirStoreBaseUrl));
 	}
@@ -58,7 +52,7 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
 	{
 		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(fhirDsfClientProvider.getLocalWebserviceClient().getBaseUrl(),
+		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
 				id.getResourceType(), id.getIdPart(), null);
 
 		String projectIdentifier = (String) userTask.getExecution()
@@ -71,7 +65,11 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
 				+ absoluteId.getValue();
 
-		mailService.send(subject, message);
+		api.getMailService().send(subject, message);
+
+		api.getVariables(userTask.getExecution()).setResource(
+				ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE,
+				questionnaireResponse);
 	}
 
 	private void replace(QuestionnaireResponse.QuestionnaireResponseItemComponent item, String projectIdentifier,
@@ -95,12 +93,10 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 			String fhirStoreBaseUrl)
 	{
 		return toReplace
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_PROJECT_IDENTIFIER,
-						"<b>" + projectIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_DMS_IDENTIFIER,
-						"<b>" + dmsIdentifier + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_FHIR_STORE_BASE_URL,
-						"<b>" + fhirStoreBaseUrl + "</b>")
-				.replace(ConstantsDataSharing.QUESTIONNAIRES_RELEASE_DATA_SET_PLACEHOLDER_NEW_LINE, "</br>");
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
+						"\"" + projectIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "\"" + dmsIdentifier + "\"")
+				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_FHIR_STORE_BASE_URL,
+						"\"" + fhirStoreBaseUrl + "\"");
 	}
 }

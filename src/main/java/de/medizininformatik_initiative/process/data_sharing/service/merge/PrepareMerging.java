@@ -44,9 +44,6 @@ public class PrepareMerging extends AbstractServiceDelegate
 		String contractUrl = getContractUrl(task);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL, contractUrl);
 
-		String extractionPeriod = getExtractionPeriod(task);
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_EXTRACTION_PERIOD, extractionPeriod);
-
 		List<String> researcherIdentifiers = getResearcherIdentifiers(task);
 		variables.setVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS,
 				ResearchersValues.create(new Researchers(researcherIdentifiers)));
@@ -56,10 +53,9 @@ public class PrepareMerging extends AbstractServiceDelegate
 		variables.setTargets(targets);
 
 		logger.info(
-				"Starting data-set reception and merging of approved data sharing project [project-identifier: {} ; contract-url: {} ; extraction-period: {} ; researchers: {} ; dic: {} ; task-id: {}]",
-				projectIdentifier, contractUrl, extractionPeriod, String.join(",", researcherIdentifiers),
-				targets.getEntries().stream().map(Target::getOrganizationIdentifierValue)
-						.collect(Collectors.joining(",")),
+				"Starting data-set reception and merging of approved data sharing project [project-identifier: {}; contract-url: {}; researchers: {}; dic: {}; task-id: {}]",
+				projectIdentifier, contractUrl, String.join(",", researcherIdentifiers), targets.getEntries().stream()
+						.map(Target::getOrganizationIdentifierValue).collect(Collectors.joining(",")),
 				task.getId());
 	}
 
@@ -81,14 +77,6 @@ public class PrepareMerging extends AbstractServiceDelegate
 						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL, UrlType.class)
 				.map(UrlType::getValue).orElseThrow(
 						() -> new RuntimeException("No contract-url present in task with id '" + task.getId() + "'"));
-	}
-
-	private String getExtractionPeriod(Task task)
-	{
-		return api.getTaskHelper()
-				.getFirstInputParameterStringValue(task, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_EXTRACTION_PERIOD)
-				.orElseThrow(() -> new RuntimeException("No extraction period provided by HRP"));
 	}
 
 	private List<String> getResearcherIdentifiers(Task task)

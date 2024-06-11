@@ -22,15 +22,15 @@ public class DataSharingProcessPluginDefinitionTest
 
 		var coordinate = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING);
 		assertNotNull(coordinate);
-		assertEquals(8, coordinate.stream().filter(this::exists).count());
+		assertEquals(9, coordinate.stream().filter(this::exists).count());
 
 		var execute = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING);
 		assertNotNull(execute);
-		assertEquals(10, execute.stream().filter(this::exists).count());
+		assertEquals(11, execute.stream().filter(this::exists).count());
 
 		var merge = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING);
 		assertNotNull(merge);
-		assertEquals(13, merge.stream().filter(this::exists).count());
+		assertEquals(14, merge.stream().filter(this::exists).count());
 	}
 
 	private boolean exists(String file)
