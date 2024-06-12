@@ -82,7 +82,7 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		Task.ParameterComponent missingReceipt = statusGenerator.createDataSetStatusInput(
 				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
 				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Delivering data-set failed");
 
 		if (task != null)
 			return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
