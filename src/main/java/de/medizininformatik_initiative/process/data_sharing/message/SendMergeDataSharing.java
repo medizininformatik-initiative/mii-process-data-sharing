@@ -66,6 +66,37 @@ public class SendMergeDataSharing extends AbstractTaskMessageSend
 				.create(task);
 	}
 
+	@Override
+	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
+			String errorMessage)
+	{
+		Task task = variables.getStartTask();
+		addErrorMessage(task, errorMessage);
+
+		logger.debug("Error while executing Task message send " + this.getClass().getName(), exception);
+		logger.error("Process {} has fatal error in step {} for task {}, reason: {}",
+				execution.getProcessDefinitionId(), execution.getActivityInstanceId(), task.getId(),
+				exception.getMessage());
+
+		try
+		{
+			if (task != null)
+			{
+				task.setStatus(Task.TaskStatus.FAILED);
+				api.getFhirWebserviceClientProvider().getLocalWebserviceClient().withMinimalReturn().update(task);
+			}
+			else
+			{
+				logger.warn("Start Task null, unable update Task with failed state");
+			}
+		}
+		finally
+		{
+			execution.getProcessEngine().getRuntimeService().deleteProcessInstance(execution.getProcessInstanceId(),
+					exception.getMessage());
+		}
+	}
+
 	private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
 	{
 		Task.ParameterComponent projectIdentifierInput = new Task.ParameterComponent();

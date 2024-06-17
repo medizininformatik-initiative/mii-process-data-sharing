@@ -62,35 +62,35 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		}
 		else
 		{
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-					"Delivering data-set failed");
-
 			String errorLog = error.isBlank() ? "" : " - " + error;
 			logger.warn(
-					"Task with id '{}' for project-identifier '{}' and DMS with identifier '{}' has data-set status code '{}'{}",
-					startTask.getId(), projectIdentifier, dmsIdentifier, statusCode, errorLog);
+					"Could not deliver encrypted transferable data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}'{}",
+					dmsIdentifier, projectIdentifier, startTask.getId(), errorLog);
 
-			sendErrorMail(startTask, projectIdentifier, dmsIdentifier, statusCode, error);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
-					"Delivering data-set failed");
+			String errorMessage = "Deliver encrypted transferable data-set failed" + errorLog;
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
+					errorMessage);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, errorMessage);
 		}
 	}
 
 	private Task.ParameterComponent getDataSetStatusInput(Task task)
 	{
-		Task.ParameterComponent missingReceipt = statusGenerator.createDataSetStatusInput(
-				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
-
 		if (task != null)
 			return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
 					.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
 							&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS.equals(c.getCode())))
-					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(missingReceipt);
+					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(getMissingReceipt());
 		else
-			return missingReceipt;
+			return getMissingReceipt();
+	}
+
+	private Task.ParameterComponent getMissingReceipt()
+	{
+		return statusGenerator.createDataSetStatusInput(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS,
+				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING);
 	}
 
 	private String getDataSetStatusCode(Task.ParameterComponent input)
@@ -100,7 +100,7 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 
 	private String getDataSetStatusError(Task.ParameterComponent input)
 	{
-		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "none";
+		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "";
 	}
 
 	private void transformInputToOutput(Task startTask, Task latestTask)
@@ -118,17 +118,6 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '" + task.getId()
 				+ "' to/from DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
 				+ "' with status code '" + code + "'";
-
-		api.getMailService().send(subject, message);
-	}
-
-	private void sendErrorMail(Task task, String projectIdentifier, String dmsIdentifier, String code, String error)
-	{
-		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
-		String message = "Could not download, decrypt, validate or insert data-set in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '" + task.getId()
-				+ "' at DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
-				+ "':\n" + "- status code: " + code + "\n" + "- error: " + error;
 
 		api.getMailService().send(subject, message);
 	}

@@ -86,16 +86,16 @@ public class InsertDataSet extends AbstractServiceDelegate implements Initializi
 					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Insert data-set failed"));
 			variables.updateTask(latestTask);
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-					"Insert data-set failed");
-
 			logger.warn(
 					"Could not insert data-set with id '{}' from organization '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
 					variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE),
 					sendingOrganization, projectIdentifier, latestTask.getId(), exception.getMessage());
 
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR,
-					"Insert data-set - " + exception.getMessage());
+			String error = "Insert data-set failed - " + exception.getMessage();
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
+					error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
+					exception);
 		}
 	}
 
