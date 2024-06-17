@@ -66,14 +66,14 @@ public class ReadDataSet extends AbstractServiceDelegate implements Initializing
 		}
 		catch (Exception exception)
 		{
-			String message = "Could not read data-set on FHIR server with baseUrl '" + fhirClient.getFhirBaseUrl()
-					+ "' for DMS '" + dmsIdentifier + "' and data-sharing project '" + projectIdentifier
-					+ "' referenced in Task with id '" + task.getId() + "' - " + exception.getMessage();
+			logger.warn(
+					"Could not read data-set on FHIR server with baseUrl '{}' for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
+					fhirClient.getFhirBaseUrl(), dmsIdentifier, projectIdentifier, task.getId(),
+					exception.getMessage());
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
-					message);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, message,
+			String error = "Read data-set failed - " + exception.getMessage();
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error,
 					exception);
 		}
 	}

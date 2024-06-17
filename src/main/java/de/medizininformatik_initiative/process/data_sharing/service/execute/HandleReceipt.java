@@ -62,32 +62,34 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		}
 		else
 		{
-			String errorLog = error.isBlank() ? "" : ": " + error;
-			String message = "Could not deliver data-set" + " to DMS '" + dmsIdentifier + "' and data-sharing project '"
-					+ projectIdentifier + "' referenced in Task with id '" + startTask.getId() + "' - " + statusCode
-					+ errorLog;
+			String errorLog = error.isBlank() ? "" : " - " + error;
+			logger.warn(
+					"Could not deliver encrypted transferable data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}'{}",
+					dmsIdentifier, projectIdentifier, startTask.getId(), errorLog);
 
+			String errorMessage = "Deliver encrypted transferable data-set failed" + errorLog;
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
-					message);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, message);
+					errorMessage);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, errorMessage);
 		}
 	}
 
 	private Task.ParameterComponent getDataSetStatusInput(Task task)
 	{
-		Task.ParameterComponent missingReceipt = statusGenerator.createDataSetStatusInput(
-				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
-
 		if (task != null)
 			return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
 					.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
 							&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS.equals(c.getCode())))
-					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(missingReceipt);
+					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(getMissingReceipt());
 		else
-			return missingReceipt;
+			return getMissingReceipt();
+	}
+
+	private Task.ParameterComponent getMissingReceipt()
+	{
+		return statusGenerator.createDataSetStatusInput(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
 	}
 
 	private String getDataSetStatusCode(Task.ParameterComponent input)
@@ -115,17 +117,6 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '" + task.getId()
 				+ "' to/from DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
 				+ "' with status code '" + code + "'";
-
-		api.getMailService().send(subject, message);
-	}
-
-	private void sendErrorMail(Task task, String projectIdentifier, String dmsIdentifier, String code, String error)
-	{
-		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
-		String message = "Could not download, decrypt, validate or insert data-set in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '" + task.getId()
-				+ "' at DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
-				+ "':\n" + "- status code: " + code + "\n" + "- error: " + error;
 
 		api.getMailService().send(subject, message);
 	}

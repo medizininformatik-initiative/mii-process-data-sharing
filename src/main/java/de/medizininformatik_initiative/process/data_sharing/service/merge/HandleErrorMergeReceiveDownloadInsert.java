@@ -35,15 +35,12 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 
 	private void sendMail(Task task, String projectIdentifier, String error)
 	{
-		logger.warn("{} - creating new user-task 'release-data-set'", error);
-
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
 		String message = "Could not download and insert new data-set in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + task.getId()
 				+ "' from organization '" + task.getRequester().getIdentifier().getValue()
-				+ "' for project-identifier '" + projectIdentifier + "':\n" + "- status code: "
-				+ ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR + "\n" + "- error: "
-				+ (error == null ? "none" : error);
+				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:"
+				+ (error == null ? "Unknown" : error);
 
 		api.getMailService().send(subject, message);
 	}

@@ -52,16 +52,17 @@ public class SendMergedDataSet extends AbstractTaskMessageSend
 	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
 			String errorMessage)
 	{
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
-				"Send merged data-set failed");
-
 		logger.warn(
 				"Could not send merged data-set with url '{}' for project-identifier '{}' to HRP referenced in Task with id '{}' - {}",
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_URL),
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
 				variables.getStartTask().getId(), exception.getMessage());
-		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR,
-				"Send merged data-set - " + exception.getMessage());
+
+		String error = "Send merged data-set failed - " + exception.getMessage();
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
+				error);
+		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, error,
+				exception);
 	}
 
 	@Override

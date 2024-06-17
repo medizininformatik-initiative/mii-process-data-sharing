@@ -31,7 +31,7 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE);
 
 		sendMail(startTask, dmsIdentifier, projectIdentifier, error);
-		failTaskIfNotStartTask(latestTask, latestTask != null, variables);
+		failTaskIfNotStartTask(startTask, latestTask, variables);
 
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, null);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, null);
@@ -45,15 +45,15 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 		String message = "Could not send data-set in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '"
 				+ startTask.getId() + "' to DMS with identifier '" + dmsIdentifier + "' for project-identifier '"
-				+ projectIdentifier + "'.\n\n" + "Error:\n" + (error == null ? "unknown" : error) + "\n\n"
+				+ projectIdentifier + "'.\n\nError:\n" + (error == null ? "Unknown" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-data-set'.";
 
 		api.getMailService().send(subject, message);
 	}
 
-	private void failTaskIfNotStartTask(Task latestTask, Boolean codeExists, Variables variables)
+	private void failTaskIfNotStartTask(Task startTask, Task latestTask, Variables variables)
 	{
-		if (latestTask != null && codeExists)
+		if (latestTask != null && startTask != latestTask)
 		{
 			latestTask.setStatus(Task.TaskStatus.FAILED);
 			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()

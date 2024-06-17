@@ -68,16 +68,16 @@ public class DownloadDataSet extends AbstractServiceDelegate implements Initiali
 					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Download data-set failed"));
 			variables.updateTask(task);
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-					"Download data-set failed");
-
 			logger.warn(
-					"Could not download data-set with id '{}}' from organization '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
+					"Could not download data-set with id '{}' from organization '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
 					dataSetReference.getValue(), sendingOrganization, projectIdentifier, task.getId(),
 					exception.getMessage());
 
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR,
-					"Download data-set - " + exception.getMessage());
+			String error = "Download data-set failed" + exception.getMessage();
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
+					error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
+					exception);
 		}
 	}
 

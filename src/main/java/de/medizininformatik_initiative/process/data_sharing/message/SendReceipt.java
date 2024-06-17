@@ -101,16 +101,17 @@ public class SendReceipt extends AbstractTaskMessageSend implements Initializing
 	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
 			String errorMessage)
 	{
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-				"Send receipt failed");
-
 		logger.warn(
 				"Could not send receipt for data-set delivered for project-identifier '{}' to DIC with identifier '{}' referenced in Task with id '{}' - {}",
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
 				variables.getTarget().getOrganizationIdentifierValue(), variables.getLatestTask().getId(),
 				exception.getMessage());
-		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR,
-				"Send receipt - " + exception.getMessage());
+
+		String error = "Send receipt for data-set failed - " + exception.getMessage();
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
+				error);
+		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
+				exception);
 	}
 
 	@Override

@@ -41,15 +41,16 @@ public class CheckQuestionnaireDataSetReleaseInput extends AbstractServiceDelega
 		}
 		else
 		{
-			String message = "Could not release data-set for DMS '" + dmsIdentifier + "' and data-sharing project '"
-					+ projectIdentifier + "' belonging to Task with id '" + task.getId()
-					+ "': expected and provided project identifier do not match (" + projectIdentifier.toLowerCase()
-					+ "/" + getProvidedProjectIdentifierAsLowerCase(questionnaireResponse) + ")";
+			String expectedIdentifier = getProvidedProjectIdentifierAsLowerCase(questionnaireResponse);
+			logger.warn(
+					"Could not release data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}': expected and provided project identifier do not match (expected: {}, provided: {})",
+					dmsIdentifier, projectIdentifier, task.getId(), expectedIdentifier,
+					projectIdentifier.toLowerCase());
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
-					message);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, message);
+			String error = "Release data-set failed - project identifier do not match (expected: "
+					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier + ")";
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error);
 		}
 	}
 

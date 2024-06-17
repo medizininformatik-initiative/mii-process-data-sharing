@@ -68,14 +68,13 @@ public class CreateDataSetBundle extends AbstractServiceDelegate implements Init
 		}
 		catch (Exception exception)
 		{
-			String message = "Could not create transferable data-set for DMS '" + dmsIdentifier
-					+ "' and data-sharing project '" + projectIdentifier + "' referenced in Task with id '"
-					+ task.getId() + "' - " + exception.getMessage();
+			logger.warn(
+					"Could not create transferable data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
+					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
-					message);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, message,
+			String error = "Create transferable data-set failed - " + exception.getMessage();
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error,
 					exception);
 		}
 	}
