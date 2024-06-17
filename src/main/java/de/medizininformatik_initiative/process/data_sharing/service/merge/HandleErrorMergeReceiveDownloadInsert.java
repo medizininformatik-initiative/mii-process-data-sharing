@@ -39,7 +39,7 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 		String message = "Could not download and insert new data-set in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + task.getId()
 				+ "' from organization '" + task.getRequester().getIdentifier().getValue()
-				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:"
+				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:\n"
 				+ (error == null ? "Unknown" : error);
 
 		api.getMailService().send(subject, message);

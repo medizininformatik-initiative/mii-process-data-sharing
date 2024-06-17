@@ -91,7 +91,7 @@ public class InsertDataSet extends AbstractServiceDelegate implements Initializi
 					variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE),
 					sendingOrganization, projectIdentifier, latestTask.getId(), exception.getMessage());
 
-			String error = "Insert data-set failed" + exception.getMessage();
+			String error = "Insert data-set failed - " + exception.getMessage();
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
 					error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,

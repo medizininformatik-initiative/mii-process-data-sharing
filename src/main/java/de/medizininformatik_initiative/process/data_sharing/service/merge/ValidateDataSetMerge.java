@@ -78,7 +78,7 @@ public class ValidateDataSetMerge extends AbstractServiceDelegate implements Ini
 					variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE),
 					sendingOrganization, projectIdentifier, task.getId(), exception.getMessage());
 
-			String error = "Validate data-set failed" + exception.getMessage();
+			String error = "Validate data-set failed - " + exception.getMessage();
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
 					error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
