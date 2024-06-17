@@ -66,17 +66,17 @@ public class SendDataSet extends AbstractTaskMessageSend implements Initializing
 	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
 			String errorMessage)
 	{
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
-				"Send data-set failed");
+		Task task = variables.getStartTask();
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
 		logger.warn(
-				"Could not send data-set with id '{}' for project-identifier '{}' to DMS with identifier '{}' referenced in Task with id '{}' - {}",
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE),
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER),
-				variables.getStartTask().getId(), exception.getMessage());
-		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
-				"Send data-set - " + exception.getMessage());
+				"Could not send encrypted transferable data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
+				dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
+
+		String error = "Send encrypted transferable data-set failed - " + exception.getMessage();
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
+		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error, exception);
 	}
 
 	@Override

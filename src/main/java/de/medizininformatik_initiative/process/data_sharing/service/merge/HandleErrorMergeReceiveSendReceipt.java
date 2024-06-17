@@ -1,7 +1,6 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,29 +29,18 @@ public class HandleErrorMergeReceiveSendReceipt extends AbstractServiceDelegate
 		String error = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 
-		sendMail(startTask, latestTask, projectIdentifier, error);
+		sendMail(latestTask, projectIdentifier, error);
 		failTaskIfNotStartTask(startTask, latestTask, variables);
 	}
 
-	private void sendMail(Task startTask, Task latestTask, String projectIdentifier, String error)
+	private void sendMail(Task latestTask, String projectIdentifier, String error)
 	{
-		logger.warn("{} - creating new user-task 'release-data-set'", error);
-
-		String statusCode = "unknown";
-		if (latestTask != null)
-		{
-			statusCode = latestTask.getOutput().stream().filter(o -> o.getValue() instanceof Coding)
-					.map(o -> (Coding) o.getValue())
-					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(Coding::getCode)
-					.findFirst().orElse("unknown");
-		}
-
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
 		String message = "Could not send data-set status receipt for new data-set in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + startTask.getId()
-				+ "' to organization '" + startTask.getRequester().getIdentifier().getValue()
-				+ "' for project-identifier '" + projectIdentifier + "':\n" + "- status code: " + statusCode + "\n"
-				+ "- error: " + (error == null ? "none" : error);
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '"
+				+ latestTask.getId() + "' to organization '" + latestTask.getRequester().getIdentifier().getValue()
+				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:\n"
+				+ (error == null ? "Unknown" : error);
 
 		api.getMailService().send(subject, message);
 	}

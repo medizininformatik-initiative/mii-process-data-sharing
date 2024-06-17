@@ -38,8 +38,8 @@ public class HandleErrorMergeRelease extends AbstractServiceDelegate
 		String message = "Could not merge data-sets in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + startTask.getId()
 				+ "' requested from organization '" + startTask.getRequester().getIdentifier().getValue()
-				+ "' for project-identifier '" + projectIdentifier + "':\n" + "- error: "
-				+ (error == null ? "none" : error) + "\n\n"
+				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:\n"
+				+ (error == null ? "Unknown" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-merged-data-set'.";
 
 		api.getMailService().send(subject, message);

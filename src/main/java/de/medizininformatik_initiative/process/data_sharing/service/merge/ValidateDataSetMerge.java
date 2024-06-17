@@ -73,16 +73,16 @@ public class ValidateDataSetMerge extends AbstractServiceDelegate implements Ini
 					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Validate data-set failed"));
 			variables.updateTask(task);
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-					"Validate data-set failed");
-
 			logger.warn(
 					"Could not validate data-set with id '{}' from organization '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
 					variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE),
 					sendingOrganization, projectIdentifier, task.getId(), exception.getMessage());
 
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR,
-					"Validate data-set - " + exception.getMessage());
+			String error = "Validate data-set failed - " + exception.getMessage();
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
+					error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
+					exception);
 		}
 	}
 

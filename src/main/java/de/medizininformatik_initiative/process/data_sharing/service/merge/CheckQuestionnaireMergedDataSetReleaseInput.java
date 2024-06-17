@@ -51,18 +51,17 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 		}
 		else
 		{
-			String message = "Could not release merged data-set for HRP and data-sharing project '" + projectIdentifier
-					+ "' referenced in Task with id '" + task.getId()
-					+ "': expected and provided project identifier do not match (" + projectIdentifier.toLowerCase()
-					+ "/" + getProvidedProjectIdentifierAsLowerCase(questionnaireResponse)
-					+ ") or QuestionnaireResponse with id '"
-					+ getDsfFhirServerAbsoluteId(questionnaireResponse.getIdElement())
-					+ "' is missing item with linkId '" + ConstantsDataSharing.QUESTIONNAIRES_ITEM_DATA_SET_URL + "'";
+			String expectedIdentifier = getProvidedProjectIdentifierAsLowerCase(questionnaireResponse);
+			logger.warn(
+					"Could not release merged data-set for HRP and data-sharing project '{}' referenced in Task with id '{}': expected and provided project identifier do not match (expected: {}, provided: {}) or merged data-set URL is not present",
+					projectIdentifier, task.getId(), expectedIdentifier, projectIdentifier.toLowerCase());
 
+			String error = "Release merged data-set failed - project identifier do not match (expected: "
+					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier
+					+ ") or merged data-set URL not present";
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
-					message);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, message);
+					error);
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, error);
 		}
 	}
 
