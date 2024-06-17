@@ -55,7 +55,7 @@ public class SendConsolidateDataSets extends AbstractTaskMessageSend
 		String message = "Could not start consolidate data-sets in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING + "' for Task with id '" + startTaskId
 				+ "' at DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
-				+ "'.\n\nError: " + (error == null ? "none" : error) + "\n\n"
+				+ "'.\n\nError:\n" + (error == null ? "none" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-consolidate-data-sets'.";
 
 		api.getMailService().send(subject, message);
