@@ -89,7 +89,8 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 	{
 		return statusGenerator.createDataSetStatusInput(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
 				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS,
+				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING);
 	}
 
 	private String getDataSetStatusCode(Task.ParameterComponent input)
