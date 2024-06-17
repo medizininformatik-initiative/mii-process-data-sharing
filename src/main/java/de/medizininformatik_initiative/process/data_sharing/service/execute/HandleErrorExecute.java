@@ -1,9 +1,6 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
-import java.util.Optional;
-
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +30,14 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 		String error = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE);
 
-		Optional<String> statusCode = extractStatusCode(latestTask);
-
-		sendMail(startTask, statusCode.orElse("unknown"), dmsIdentifier, projectIdentifier, error);
-		failTaskIfNotStartTask(latestTask, statusCode.isPresent(), variables);
+		sendMail(startTask, dmsIdentifier, projectIdentifier, error);
+		failTaskIfNotStartTask(latestTask, latestTask != null, variables);
 
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, null);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, null);
 	}
 
-	private void sendMail(Task startTask, String code, String dmsIdentifier, String projectIdentifier, String error)
+	private void sendMail(Task startTask, String dmsIdentifier, String projectIdentifier, String error)
 	{
 		logger.warn("{} - creating new user-task 'release-data-set'", error);
 
@@ -50,23 +45,10 @@ public class HandleErrorExecute extends AbstractServiceDelegate
 		String message = "Could not send data-set in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '"
 				+ startTask.getId() + "' to DMS with identifier '" + dmsIdentifier + "' for project-identifier '"
-				+ projectIdentifier + "':\n" + "- status code: " + code + "\n" + "- error: "
-				+ (error == null ? "none" : error) + "\n\n"
+				+ projectIdentifier + "'.\n\n" + "Error:\n" + (error == null ? "unknown" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-data-set'.";
 
 		api.getMailService().send(subject, message);
-	}
-
-	private Optional<String> extractStatusCode(Task task)
-	{
-		if (task != null)
-		{
-			return task.getInput().stream().filter(o -> o.getValue() instanceof Coding).map(o -> (Coding) o.getValue())
-					.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(Coding::getCode)
-					.findFirst();
-		}
-		else
-			return Optional.empty();
 	}
 
 	private void failTaskIfNotStartTask(Task latestTask, Boolean codeExists, Variables variables)

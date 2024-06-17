@@ -62,18 +62,15 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		}
 		else
 		{
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-					"Delivering data-set failed");
+			String errorLog = error.isBlank() ? "" : ": " + error;
+			String message = "Could not deliver data-set" + " to DMS '" + dmsIdentifier + "' and data-sharing project '"
+					+ projectIdentifier + "' referenced in Task with id '" + startTask.getId() + "' - " + statusCode
+					+ errorLog;
 
-			String errorLog = error.isBlank() ? "" : " - " + error;
-			logger.warn(
-					"Task with id '{}' for project-identifier '{}' and DMS with identifier '{}' has data-set status code '{}'{}",
-					startTask.getId(), projectIdentifier, dmsIdentifier, statusCode, errorLog);
+			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
+					message);
 
-			sendErrorMail(startTask, projectIdentifier, dmsIdentifier, statusCode, error);
-
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
-					"Delivering data-set failed");
+			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, message);
 		}
 	}
 
@@ -82,7 +79,7 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		Task.ParameterComponent missingReceipt = statusGenerator.createDataSetStatusInput(
 				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
 				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Delivering data-set failed");
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
 
 		if (task != null)
 			return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
@@ -100,7 +97,7 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 
 	private String getDataSetStatusError(Task.ParameterComponent input)
 	{
-		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "none";
+		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "";
 	}
 
 	private void transformInputToOutput(Task startTask, Task latestTask)
