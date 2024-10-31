@@ -58,7 +58,7 @@ public class ValidateDataSetExecute extends AbstractServiceDelegate implements I
 		catch (Exception exception)
 		{
 			logger.warn(
-					"Could not validate data-set for DMS '{}}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
+					"Could not validate data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
 					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
 			String error = "Validate data-set failed - " + exception.getMessage();
