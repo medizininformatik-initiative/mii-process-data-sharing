@@ -56,8 +56,9 @@ import de.medizininformatik_initiative.process.data_sharing.service.merge.Select
 import de.medizininformatik_initiative.process.data_sharing.service.merge.ValidateDataSetMerge;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProviderImpl;
+import de.medizininformatik_initiative.processes.common.mimetype.CombinedDetectors;
+import de.medizininformatik_initiative.processes.common.mimetype.MimeTypeHelper;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-import de.medizininformatik_initiative.processes.common.util.MimeTypeHelper;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.ProcessPluginDeploymentStateListener;
 import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
@@ -91,7 +92,7 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public MimeTypeHelper mimeTypeHelper()
 	{
-		return new MimeTypeHelper(api.getFhirContext());
+		return new MimeTypeHelper(CombinedDetectors.fromDefaultWithNdJson(), api.getFhirContext());
 	}
 
 	@Bean
