@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import de.medizininformatik_initiative.processes.common.util.MimeTypeHelper;
+import de.medizininformatik_initiative.processes.common.mimetype.MimeTypeHelper;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
 import dev.dsf.bpe.v1.variables.Variables;
@@ -58,7 +58,7 @@ public class ValidateDataSetExecute extends AbstractServiceDelegate implements I
 		catch (Exception exception)
 		{
 			logger.warn(
-					"Could not validate data-set for DMS '{}}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
+					"Could not validate data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
 					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
 			String error = "Validate data-set failed - " + exception.getMessage();
