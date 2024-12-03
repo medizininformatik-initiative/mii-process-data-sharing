@@ -78,7 +78,6 @@ public class EncryptDataSet extends AbstractServiceDelegate implements Initializ
 					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
 			String error = "Encrypt transferable data-set failed - " + exception.getMessage();
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error,
 					exception);
 		}

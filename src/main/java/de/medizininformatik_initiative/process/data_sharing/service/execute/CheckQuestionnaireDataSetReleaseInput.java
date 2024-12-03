@@ -50,7 +50,6 @@ public class CheckQuestionnaireDataSetReleaseInput extends AbstractServiceDelega
 
 			String error = "Release data-set failed - project identifier do not match (expected: "
 					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier + ")";
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error);
 		}
 	}

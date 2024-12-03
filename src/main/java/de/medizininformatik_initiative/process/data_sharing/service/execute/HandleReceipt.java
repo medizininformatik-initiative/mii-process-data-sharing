@@ -68,8 +68,6 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 					dmsIdentifier, projectIdentifier, startTask.getId(), errorLog);
 
 			String errorMessage = "Deliver encrypted transferable data-set failed" + errorLog;
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE,
-					errorMessage);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, errorMessage);
 		}
 	}

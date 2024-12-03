@@ -74,8 +74,6 @@ public class DownloadDataSet extends AbstractServiceDelegate implements Initiali
 					exception.getMessage());
 
 			String error = "Download data-set failed - " + exception.getMessage();
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-					error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
 					exception);
 		}

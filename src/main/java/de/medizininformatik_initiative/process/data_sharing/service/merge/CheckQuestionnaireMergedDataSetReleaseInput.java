@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.PrimitiveType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
@@ -17,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
 import dev.dsf.bpe.v1.variables.Variables;
@@ -60,8 +60,6 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 			String error = "Release merged data-set failed - project identifier do not match (expected: "
 					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier
 					+ ") or merged data-set URL not present";
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
-					error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, error);
 		}
 	}
@@ -115,11 +113,5 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.flatMap(i -> i.getAnswer().stream()).filter(a -> a.getValue() instanceof StringType)
 				.map(a -> (StringType) a.getValue()).map(PrimitiveType::getValue).filter(Objects::nonNull);
-	}
-
-	private String getDsfFhirServerAbsoluteId(IdType idType)
-	{
-		return new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
-				idType.getResourceType(), idType.getIdPart(), null).getValue();
 	}
 }
