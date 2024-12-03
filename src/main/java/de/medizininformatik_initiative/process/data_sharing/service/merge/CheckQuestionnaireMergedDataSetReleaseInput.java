@@ -1,5 +1,6 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -51,7 +52,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 		}
 		else
 		{
-			String expectedIdentifier = getProvidedProjectIdentifierAsLowerCase(questionnaireResponse);
+			String expectedIdentifier = getProjectIdentifier(questionnaireResponse);
 			logger.warn(
 					"Could not release merged data-set for HRP and data-sharing project '{}' referenced in Task with id '{}': expected and provided project identifier do not match (expected: {}, provided: {}) or merged data-set URL is not present",
 					projectIdentifier, task.getId(), expectedIdentifier, projectIdentifier.toLowerCase());
@@ -99,23 +100,21 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 	private boolean projectIdentifierMatch(QuestionnaireResponse questionnaireResponse,
 			String expectedProjectIdentifier)
 	{
-		return getProjectIdentifiersAsLowerCase(questionnaireResponse)
-				.anyMatch(foundProjectIdentifier -> expectedProjectIdentifier.toLowerCase().trim()
-						.equals(foundProjectIdentifier));
+		return getProjectIdentifiers(questionnaireResponse).anyMatch(foundProjectIdentifier -> expectedProjectIdentifier
+				.trim().equalsIgnoreCase(foundProjectIdentifier.trim()));
 	}
 
-	private String getProvidedProjectIdentifierAsLowerCase(QuestionnaireResponse questionnaireResponse)
+	private String getProjectIdentifier(QuestionnaireResponse questionnaireResponse)
 	{
-		return getProjectIdentifiersAsLowerCase(questionnaireResponse).findFirst().orElse("unknown");
+		return getProjectIdentifiers(questionnaireResponse).findFirst().orElse("unknown");
 	}
 
-	private Stream<String> getProjectIdentifiersAsLowerCase(QuestionnaireResponse questionnaireResponse)
+	private Stream<String> getProjectIdentifiers(QuestionnaireResponse questionnaireResponse)
 	{
 		return questionnaireResponse.getItem().stream()
 				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.flatMap(i -> i.getAnswer().stream()).filter(a -> a.getValue() instanceof StringType)
-				.map(a -> (StringType) a.getValue()).map(PrimitiveType::getValue).map(String::toLowerCase)
-				.map(String::trim);
+				.map(a -> (StringType) a.getValue()).map(PrimitiveType::getValue).filter(Objects::nonNull);
 	}
 
 	private String getDsfFhirServerAbsoluteId(IdType idType)
