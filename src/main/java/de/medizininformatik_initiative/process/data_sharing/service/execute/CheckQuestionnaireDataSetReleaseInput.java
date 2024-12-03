@@ -57,8 +57,9 @@ public class CheckQuestionnaireDataSetReleaseInput extends AbstractServiceDelega
 	private boolean projectIdentifierMatch(QuestionnaireResponse questionnaireResponse,
 			String expectedProjectIdentifier)
 	{
-		return getProjectIdentifiersAsLowerCase(questionnaireResponse).anyMatch(
-				foundProjectIdentifier -> expectedProjectIdentifier.toLowerCase().equals(foundProjectIdentifier));
+		return getProjectIdentifiersAsLowerCase(questionnaireResponse)
+				.anyMatch(foundProjectIdentifier -> expectedProjectIdentifier.toLowerCase().trim()
+						.equals(foundProjectIdentifier));
 	}
 
 	private String getProvidedProjectIdentifierAsLowerCase(QuestionnaireResponse questionnaireResponse)
