@@ -108,8 +108,6 @@ public class SendReceipt extends AbstractTaskMessageSend implements Initializing
 				exception.getMessage());
 
 		String error = "Send receipt for data-set failed - " + exception.getMessage();
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-				error);
 		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, error,
 				exception);
 	}

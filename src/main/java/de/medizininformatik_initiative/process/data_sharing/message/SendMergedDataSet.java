@@ -59,8 +59,6 @@ public class SendMergedDataSet extends AbstractTaskMessageSend
 				variables.getStartTask().getId(), exception.getMessage());
 
 		String error = "Send merged data-set failed - " + exception.getMessage();
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
-				error);
 		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, error,
 				exception);
 	}

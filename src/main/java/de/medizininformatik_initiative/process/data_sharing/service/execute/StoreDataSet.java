@@ -67,7 +67,6 @@ public class StoreDataSet extends AbstractServiceDelegate implements Initializin
 					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
 			String error = "Store encrypted transferable data-set failed - " + exception.getMessage();
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error,
 					exception);
 		}

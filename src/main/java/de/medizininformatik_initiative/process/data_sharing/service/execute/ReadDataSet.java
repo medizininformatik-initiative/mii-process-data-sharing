@@ -72,7 +72,6 @@ public class ReadDataSet extends AbstractServiceDelegate implements Initializing
 					exception.getMessage());
 
 			String error = "Read data-set failed - " + exception.getMessage();
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error,
 					exception);
 		}

@@ -62,7 +62,6 @@ public class ValidateDataSetExecute extends AbstractServiceDelegate implements I
 					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
 			String error = "Validate data-set failed - " + exception.getMessage();
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
 			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error,
 					exception);
 		}

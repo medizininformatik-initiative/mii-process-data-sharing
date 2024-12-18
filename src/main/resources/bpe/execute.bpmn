@@ -64,23 +64,23 @@
     </bpmn:serviceTask>
     <bpmn:boundaryEvent id="executeDataSharingReadError" attachedToRef="readDataSet">
       <bpmn:outgoing>Flow_0mjc1t1</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0uqhokx" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0uqhokx" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:boundaryEvent id="executeDataSharingStoreError" attachedToRef="storeDataSetForTarget">
       <bpmn:outgoing>Flow_02v1yz0</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0hx2qcl" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0hx2qcl" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:boundaryEvent id="executeDataSharingEncryptError" attachedToRef="encryptDataSet">
       <bpmn:outgoing>Flow_0slzzgh</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0b6gw8v" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0b6gw8v" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:boundaryEvent id="executeDataSharingCreateError" attachedToRef="createDataSetBundle">
       <bpmn:outgoing>Flow_1bjrf5x</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_1n4a0tp" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1n4a0tp" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:boundaryEvent id="executeDataSharingValidateError" attachedToRef="validateDataSet">
       <bpmn:outgoing>Flow_0z1jiw3</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_1tebs75" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1tebs75" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="Flow_0z1jiw3" sourceRef="executeDataSharingValidateError" targetRef="handleErrorExecute" />
     <bpmn:sequenceFlow id="Flow_02rgwex" sourceRef="handleErrorExecute" targetRef="releaseDataSet" />
@@ -90,7 +90,7 @@
     <bpmn:sequenceFlow id="Flow_02v1yz0" sourceRef="executeDataSharingStoreError" targetRef="handleErrorExecute" />
     <bpmn:boundaryEvent id="questionnaireError" attachedToRef="checkQuestionnaireInput">
       <bpmn:outgoing>Flow_0ur5qa0</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0bpbcmq" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0bpbcmq" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="Flow_0ur5qa0" sourceRef="questionnaireError" targetRef="handleErrorExecute" />
     <bpmn:serviceTask id="handleErrorExecute" name="handle error" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.execute.HandleErrorExecute">
@@ -120,7 +120,7 @@
     </bpmn:sendTask>
     <bpmn:boundaryEvent id="executeDataSharingSendError" attachedToRef="sendDataSet">
       <bpmn:outgoing>Flow_0mill5i</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0g01vrv" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0g01vrv" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:serviceTask id="deleteDataSetErrorSend" name="delete data-set" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.execute.DeleteDataSet">
       <bpmn:incoming>Flow_0mill5i</bpmn:incoming>
@@ -164,7 +164,7 @@
     <bpmn:sequenceFlow id="Flow_0m843o9" sourceRef="handleReceipt" targetRef="deleteDataSetSuccessfulSend" />
     <bpmn:boundaryEvent id="executeDataSharingReceiptError" attachedToRef="handleReceipt">
       <bpmn:outgoing>Flow_18qzynx</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0qqe1l7" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0qqe1l7" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="Flow_18qzynx" sourceRef="executeDataSharingReceiptError" targetRef="deleteDataSetErrorSend" />
     <bpmn:boundaryEvent id="stopExecuteDataSharing" name="data-extraction period closed" attachedToRef="releaseDataSet">
