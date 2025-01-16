@@ -108,7 +108,7 @@ public class DmsFhirClientConfig
 	private String fhirStoreOAuth2IssuerUrl;
 
 	@ProcessDocumentation(processNames = {
-			"medizininformatik-initiativede_mergeDataSharing" }, description = "The path for oidc discovery protocol", recommendation = "Change default value only if path is differs from the oidc specification")
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "The path for oidc discovery protocol", recommendation = "Change default value only if path differs from the oidc specification")
 	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.oauth2.discovery.path:/.well-known/openid-configuration}")
 	private String fhirStoreOAuth2DiscoveryPath;
 
