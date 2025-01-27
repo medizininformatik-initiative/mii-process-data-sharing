@@ -152,6 +152,10 @@ public class DmsFhirClientConfig
 	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.oauth2.proxy.password:#{null}}")
 	private String fhirStoreOAuth2ProxyPassword;
 
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "If set to false, OIDC validation will only log a warning and not throw an illegal state exception")
+	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.oauth2.validation.lenient:false}")
+	private boolean fhirStoreOAuth2ConfigurationValidationLenient;
 
 	@ProcessDocumentation(processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "To enable debug logging of FHIR resources set to `true`")
@@ -206,7 +210,8 @@ public class DmsFhirClientConfig
 
 		return new OAuth2TokenClient(fhirStoreOAuth2IssuerUrl, fhirStoreOAuth2DiscoveryPath, fhirStoreOAuth2ClientId,
 				fhirStoreOAuth2ClientSecret, fhirStoreOAuth2ConnectTimeout, fhirStoreOAuth2SocketTimeout,
-				trustStoreOAuth2Path, proxyUrl, proxyUsername, proxyPassword);
+				trustStoreOAuth2Path, proxyUrl, proxyUsername, proxyPassword,
+				fhirStoreOAuth2ConfigurationValidationLenient);
 	}
 
 	public DataLogger dataLogger()
