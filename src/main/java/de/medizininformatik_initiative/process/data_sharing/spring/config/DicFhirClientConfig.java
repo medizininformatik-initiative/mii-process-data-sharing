@@ -153,7 +153,7 @@ public class DicFhirClientConfig
 	private String fhirStoreOAuth2ProxyPassword;
 
 	@ProcessDocumentation(processNames = {
-			"medizininformatik-initiativede_executeDataSharing" }, description = "If set to false, OIDC validation will only log a warning and not throw an illegal state exception")
+			"medizininformatik-initiativede_executeDataSharing" }, description = "If set to true, OIDC validation will only log a warning and not throw an illegal state exception")
 	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.oauth2.validation.lenient:false}")
 	private boolean fhirStoreOAuth2ConfigurationValidationLenient;
 
