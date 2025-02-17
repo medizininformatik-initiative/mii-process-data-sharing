@@ -2,8 +2,6 @@ package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Task;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
@@ -13,8 +11,6 @@ import dev.dsf.bpe.v1.variables.Variables;
 
 public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelegate
 {
-	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeReceiveDownloadInsert.class);
-
 	public HandleErrorMergeReceiveDownloadInsert(ProcessPluginApi api)
 	{
 		super(api);

@@ -24,7 +24,7 @@ public class ResearchersSerializer extends PrimitiveValueSerializer<ResearchersV
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception
+	public void afterPropertiesSet()
 	{
 		Objects.requireNonNull(objectMapper, "objectMapper");
 	}

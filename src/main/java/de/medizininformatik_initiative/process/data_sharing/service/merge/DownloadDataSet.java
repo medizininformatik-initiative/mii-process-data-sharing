@@ -42,7 +42,7 @@ public class DownloadDataSet extends AbstractServiceDelegate implements Initiali
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables) throws Exception
+	protected void doExecute(DelegateExecution execution, Variables variables)
 	{
 		Task task = variables.getLatestTask();
 		String sendingOrganization = task.getRequester().getIdentifier().getValue();
