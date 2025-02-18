@@ -12,8 +12,8 @@ import dev.dsf.bpe.v1.ProcessPluginDefinition;
 
 public class DataSharingProcessPluginDefinition implements ProcessPluginDefinition
 {
-	public static final String VERSION = "1.0.2.0";
-	public static final LocalDate RELEASE_DATE = LocalDate.of(2024, 11, 10);
+	public static final String VERSION = "1.0.2.1";
+	public static final LocalDate RELEASE_DATE = LocalDate.of(2025, 2, 18);
 
 	@Override
 	public String getName()
