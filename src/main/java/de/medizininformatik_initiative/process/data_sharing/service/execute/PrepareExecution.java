@@ -49,7 +49,7 @@ public class PrepareExecution extends AbstractServiceDelegate
 						&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER.equals(c.getCode())))
 				.filter(i -> i.getValue() instanceof Identifier).map(i -> (Identifier) i.getValue())
 				.filter(i -> ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER.equals(i.getSystem()))
-				.map(Identifier::getValue).findFirst().orElseThrow(() -> new RuntimeException(
+				.map(Identifier::getValue).map(String::trim).findFirst().orElseThrow(() -> new RuntimeException(
 						"No project-identifier present in Task with id '" + task.getId() + "'"));
 	}
 
