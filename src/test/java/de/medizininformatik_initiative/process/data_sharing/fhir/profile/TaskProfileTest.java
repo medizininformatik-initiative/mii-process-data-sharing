@@ -281,7 +281,7 @@ public class TaskProfileTest
 				.setValue(new Reference("http://example.foo/fhir/DocumentReference/1")
 						.setType(ResourceType.DocumentReference.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_REFERENCE);
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_LOCATION);
 
 		task.addOutput().setValue(new UrlType("http://example.foo")).getType().addCoding()
 				.setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
@@ -329,10 +329,11 @@ public class TaskProfileTest
 				.addCoding(CodeSystems.BpmnMessage.correlationKey());
 
 		task.addInput()
-				.setValue(new Reference().setReference("https://dic1/fhir/Binary/" + UUID.randomUUID().toString())
-						.setType(ResourceType.Binary.name()))
+				.setValue(new Reference()
+						.setReference("https://dic1/fhir/DocumentReference/" + UUID.randomUUID().toString())
+						.setType(ResourceType.DocumentReference.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE);
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_LOCATION);
 
 		return task;
 	}
