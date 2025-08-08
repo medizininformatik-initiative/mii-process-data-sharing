@@ -202,8 +202,8 @@ public class DecryptValidateAndInsertDataSet extends AbstractServiceDelegate imp
 					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
 					.readBinary(url.getIdPart(), MediaType.valueOf(MediaType.APPLICATION_OCTET_STREAM));
 
-			// inputStream = RsaAesGcmUtil.decrypt(privateKey, inputStream, sendingOrganizationIdentifier,
-			// receivingOrganizationIdentifier);
+			inputStream = RsaAesGcmUtil.decrypt(privateKey, inputStream, sendingOrganizationIdentifier,
+					receivingOrganizationIdentifier);
 
 			if (!inputStream.markSupported())
 				inputStream = new BufferedInputStream(inputStream);
