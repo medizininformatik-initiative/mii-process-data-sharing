@@ -164,7 +164,7 @@ public class DmsFhirClientConfig
 
 	@ProcessDocumentation(processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "To enable an additional connection test on startup of the client writing Binary resources as stream, set to `true`")
-	@Value("${de.medizininformatik.initiative.data.transfer.dms.fhir.server.binary.stream.client.connection.test.enabled:false}")
+	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.binary.stream.client.connection.test.enabled:false}")
 	private boolean fhirBinaryStreamClientConnectionTestEnabled;
 
 	@Value("${dev.dsf.bpe.fhir.server.organization.identifier.value}")
