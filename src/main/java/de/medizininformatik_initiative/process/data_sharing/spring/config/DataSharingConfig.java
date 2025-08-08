@@ -30,9 +30,8 @@ import de.medizininformatik_initiative.process.data_sharing.service.coordinate.P
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.SelectDicTargets;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.SelectDmsTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.CheckQuestionnaireDataSetReleaseInput;
-import de.medizininformatik_initiative.process.data_sharing.service.execute.CreateDataSetBundle;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.DeleteDataSet;
-import de.medizininformatik_initiative.process.data_sharing.service.execute.EncryptDataSet;
+import de.medizininformatik_initiative.process.data_sharing.service.execute.EncryptAndStoreDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.HandleErrorExecute;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.HandleReceipt;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.PrepareExecution;
@@ -43,17 +42,15 @@ import de.medizininformatik_initiative.process.data_sharing.service.execute.Stor
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ValidateDataSetExecute;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.CheckQuestionnaireMergedDataSetReleaseInput;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.CommunicateMissingDataSetsMerge;
-import de.medizininformatik_initiative.process.data_sharing.service.merge.DecryptDataSet;
+import de.medizininformatik_initiative.process.data_sharing.service.merge.DecryptValidateAndInsertDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.DownloadDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.HandleErrorMergeReceiveDownloadInsert;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.HandleErrorMergeReceiveSendReceipt;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.HandleErrorMergeRelease;
-import de.medizininformatik_initiative.process.data_sharing.service.merge.InsertDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.PrepareMerging;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.ReinsertTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.SelectDicTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.SelectHrpTarget;
-import de.medizininformatik_initiative.process.data_sharing.service.merge.ValidateDataSetMerge;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProviderImpl;
 import de.medizininformatik_initiative.processes.common.mimetype.CombinedDetectors;
@@ -75,6 +72,21 @@ public class DataSharingConfig
 
 	@Autowired
 	private DmsFhirClientConfig dmsFhirClientConfig;
+
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_executeDataSharing" }, description = "To enable stream processing when reading Binary resources set to `true`")
+	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.binary.stream.read.enabled:false}")
+	private boolean fhirBinaryStreamReadEnabled;
+
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_executeDataSharing" }, description = "If the DIC FHIR server is a HAPI FHIR server and uses external storage for Binary resources via the ENV variable `HAPI_FHIR_BINARY_STORAGE_ENABLED`, set this ENV variable as well to `true`")
+	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.binary.stream.read.use.hapi.blob.storage.operation:false}")
+	private boolean fhirBinaryStreamReadUseHapiBlobStorageOperation;
+
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "To enable stream processing when writing Binary resources set to `true`")
+	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.binary.stream.write.enabled:false}")
+	private boolean fhirBinaryStreamWriteEnabled;
 
 	@ProcessDocumentation(required = true, processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
@@ -123,7 +135,6 @@ public class DataSharingConfig
 		return new DataSharingProcessPluginDeploymentStateListener(dicFhirClientConfig.fhirClientFactory(),
 				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms());
 	}
-
 
 	// coordinateDataSharing
 
@@ -266,28 +277,24 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReadDataSet readDataSet()
 	{
-		return new ReadDataSet(api, dicFhirClientConfig.fhirClientFactory());
+		return new ReadDataSet(api, dicFhirClientConfig.fhirClientFactory(), fhirBinaryStreamReadEnabled,
+				dicFhirClientConfig.dataLogger());
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ValidateDataSetExecute validateDataSetExecute()
 	{
-		return new ValidateDataSetExecute(api, mimeTypeHelper());
+		return new ValidateDataSetExecute(api, mimeTypeHelper(), dicFhirClientConfig.fhirClientFactory(),
+				fhirBinaryStreamReadUseHapiBlobStorageOperation);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public CreateDataSetBundle createDataSetBundle()
+	public EncryptAndStoreDataSet encryptAndStoreDataSet()
 	{
-		return new CreateDataSetBundle(api, dicFhirClientConfig.dataLogger());
-	}
-
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public EncryptDataSet encryptDataSet()
-	{
-		return new EncryptDataSet(api, keyProviderDic());
+		return new EncryptAndStoreDataSet(api, keyProviderDic(), dicFhirClientConfig.fhirClientFactory(),
+				dataSetStatusGenerator(), fhirBinaryStreamReadUseHapiBlobStorageOperation);
 	}
 
 	@Bean
@@ -338,28 +345,16 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public DownloadDataSet downloadDataSet()
 	{
-		return new DownloadDataSet(api, dataSetStatusGenerator());
+		return new DownloadDataSet(api, dataSetStatusGenerator(), fhirBinaryStreamWriteEnabled,
+				dmsFhirClientConfig.dataLogger());
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public DecryptDataSet decryptDataSet()
+	public DecryptValidateAndInsertDataSet decryptValidateAndInsertDataSet()
 	{
-		return new DecryptDataSet(api, keyProviderDms(), dmsFhirClientConfig.dataLogger(), dataSetStatusGenerator());
-	}
-
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public ValidateDataSetMerge validateDataSetMerge()
-	{
-		return new ValidateDataSetMerge(api, mimeTypeHelper(), dataSetStatusGenerator());
-	}
-
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public InsertDataSet insertDataSet()
-	{
-		return new InsertDataSet(api, dmsFhirClientConfig.fhirClientFactory(), dataSetStatusGenerator());
+		return new DecryptValidateAndInsertDataSet(api, keyProviderDms(), mimeTypeHelper(),
+				dmsFhirClientConfig.fhirClientFactory(), dataSetStatusGenerator());
 	}
 
 	@Bean

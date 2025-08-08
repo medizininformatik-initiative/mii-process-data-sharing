@@ -74,7 +74,7 @@ public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend
 		{
 			Task task = createTask(profile, instantiatesCanonical, messageName, businessKey);
 			additionalInputParameters.forEach(task::addInput);
-			MethodOutcome outcome = fhirClientFactory.getFhirClient().create(task);
+			MethodOutcome outcome = fhirClientFactory.getStandardFhirClient().create(task);
 
 			if (!outcome.getCreated())
 			{

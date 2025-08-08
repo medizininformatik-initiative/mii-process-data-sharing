@@ -39,7 +39,7 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		String dmsIdentifier = (String) userTask.getExecution()
 				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		String fhirStoreBaseUrl = fhirStoreClientFactory.getFhirClient().getFhirBaseUrl();
+		String fhirStoreBaseUrl = fhirStoreClientFactory.getFhirBaseUrl();
 
 		questionnaireResponse.getItem().stream()
 				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId())
