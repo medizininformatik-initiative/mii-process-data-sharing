@@ -104,7 +104,7 @@ public class DicFhirClientConfig
 
 	@ProcessDocumentation(processNames = {
 			"medizininformatik-initiativede_executeDataSharing" }, description = "The base url of the oidc provider", example = "http://foo.baz/realms/fhir-realm")
-	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.oauth2.issuer.url:#{null}}")
+	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.oauth2.url:#{null}}")
 	private String fhirStoreOAuth2IssuerUrl;
 
 	@ProcessDocumentation(processNames = {
