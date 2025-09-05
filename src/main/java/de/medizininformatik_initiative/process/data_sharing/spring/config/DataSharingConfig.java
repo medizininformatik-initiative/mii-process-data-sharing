@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDefinition;
 import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDeploymentStateListener;
 import de.medizininformatik_initiative.process.data_sharing.message.SendConsolidateDataSets;
 import de.medizininformatik_initiative.process.data_sharing.message.SendDataSet;
@@ -132,8 +133,9 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ProcessPluginDeploymentStateListener dataSharingProcessPluginDeploymentStateListener()
 	{
-		return new DataSharingProcessPluginDeploymentStateListener(dicFhirClientConfig.fhirClientFactory(),
-				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms());
+		String resourcesVersion = new DataSharingProcessPluginDefinition().getResourceVersion();
+		return new DataSharingProcessPluginDeploymentStateListener(api, dicFhirClientConfig.fhirClientFactory(),
+				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms(), resourcesVersion);
 	}
 
 	// coordinateDataSharing
