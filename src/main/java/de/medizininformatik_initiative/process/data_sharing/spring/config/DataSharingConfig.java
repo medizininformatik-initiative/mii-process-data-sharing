@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDefinition;
 import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDeploymentStateListener;
 import de.medizininformatik_initiative.process.data_sharing.message.SendConsolidateDataSets;
 import de.medizininformatik_initiative.process.data_sharing.message.SendDataSet;
@@ -56,6 +57,7 @@ import de.medizininformatik_initiative.processes.common.crypto.KeyProviderImpl;
 import de.medizininformatik_initiative.processes.common.mimetype.CombinedDetectors;
 import de.medizininformatik_initiative.processes.common.mimetype.MimeTypeHelper;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
+import de.medizininformatik_initiative.processes.common.util.MetadataResourceConverter;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.ProcessPluginDeploymentStateListener;
 import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
@@ -129,11 +131,19 @@ public class DataSharingConfig
 	}
 
 	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+	public MetadataResourceConverter metadataResourceConverter()
+	{
+		String resourcesVersion = new DataSharingProcessPluginDefinition().getResourceVersion();
+		return new MetadataResourceConverter(api, resourcesVersion);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 	public ProcessPluginDeploymentStateListener dataSharingProcessPluginDeploymentStateListener()
 	{
-		return new DataSharingProcessPluginDeploymentStateListener(dicFhirClientConfig.fhirClientFactory(),
-				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms());
+		return new DataSharingProcessPluginDeploymentStateListener(api, dicFhirClientConfig.fhirClientFactory(),
+				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms(), metadataResourceConverter());
 	}
 
 	// coordinateDataSharing
