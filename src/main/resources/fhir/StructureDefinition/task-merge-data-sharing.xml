@@ -181,17 +181,35 @@
         </discriminator>
         <rules value="open" />
       </slicing>
+      <constraint>
+        <key value="dic-identifier-extension-must-exist"/>
+        <severity value="error"/>
+        <human value="At least one of dic-identifier or dic-identifier-legacy extension must be present."/>
+        <expression value="extension('http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier').exists() or extension('http://medizininformatik-initiative.de/fhir/Extension/dic-identifier').exists()"/>
+      </constraint>
     </element>
     <element id="Task.input:dic-correlation-key.extension:dic-identifier">
       <path value="Task.input.extension" />
       <sliceName value="dic-identifier" />
-      <min value="1" />
+      <min value="0" />
       <max value="1" />
       <type>
         <code value="Extension" />
         <profile value="http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier|#{version}" />
       </type>
     </element>
+
+    <element id="Task.input:dic-correlation-key.extension:dic-identifier-legacy">
+      <path value="Task.input.extension" />
+      <sliceName value="dic-identifier-legacy" />
+      <min value="0" />
+      <max value="1" />
+    </element>
+    <element id="Task.input:dic-correlation-key.extension:dic-identifier-legacy.url">
+      <path value="Task.input.extension.url" />
+      <fixedUri value="http://medizininformatik-initiative.de/fhir/Extension/dic-identifier" />
+    </element>
+
     <element id="Task.input:dic-correlation-key.type">
       <path value="Task.input.type" />
       <binding>

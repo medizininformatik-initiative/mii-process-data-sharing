@@ -215,7 +215,7 @@ public class TaskProfileTest
 	@Test
 	public void testValidTaskMergeDataSharing()
 	{
-		Task task = createValidTaskMergeDataSharing();
+		Task task = createValidTaskMergeDataSharing(ConstantsDataSharing.EXTENSION_URL_DIC_IDENTIFIER);
 
 		ValidationResult result = resourceValidator.validate(task);
 		ValidationSupportRule.logValidationMessages(logger, result);
@@ -224,7 +224,19 @@ public class TaskProfileTest
 				|| ResultSeverityEnum.FATAL.equals(m.getSeverity())).count());
 	}
 
-	private Task createValidTaskMergeDataSharing()
+	@Test
+	public void testValidTaskMergeDataSharingLegacy()
+	{
+		Task task = createValidTaskMergeDataSharing(ConstantsDataSharing.EXTENSION_URL_DIC_IDENTIFIER_LEGACY);
+
+		ValidationResult result = resourceValidator.validate(task);
+		ValidationSupportRule.logValidationMessages(logger, result);
+
+		assertEquals(0, result.getMessages().stream().filter(m -> ResultSeverityEnum.ERROR.equals(m.getSeverity())
+				|| ResultSeverityEnum.FATAL.equals(m.getSeverity())).count());
+	}
+
+	private Task createValidTaskMergeDataSharing(String dicIdentifierExtensionUrl)
 	{
 		Task task = new Task();
 		task.getMeta().addProfile(ConstantsDataSharing.PROFILE_TASK_MERGE_DATA_SHARING);
@@ -266,14 +278,14 @@ public class TaskProfileTest
 		Task.ParameterComponent dic1 = task.addInput().setValue(new StringType(UUID.randomUUID().toString()));
 		dic1.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DIC_CORRELATION_KEY);
-		dic1.addExtension().setUrl(ConstantsDataSharing.EXTENSION_URL_DIC_IDENTIFIER)
+		dic1.addExtension().setUrl(dicIdentifierExtensionUrl)
 				.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC1"))
 						.setType(ResourceType.Organization.name()));
 
 		Task.ParameterComponent dic2 = task.addInput().setValue(new StringType(UUID.randomUUID().toString()));
 		dic2.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DIC_CORRELATION_KEY);
-		dic2.addExtension().setUrl(ConstantsDataSharing.EXTENSION_URL_DIC_IDENTIFIER)
+		dic2.addExtension().setUrl(dicIdentifierExtensionUrl)
 				.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC2"))
 						.setType(ResourceType.Organization.name()));
 

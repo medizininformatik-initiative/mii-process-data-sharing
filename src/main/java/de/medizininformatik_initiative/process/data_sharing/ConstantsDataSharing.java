@@ -59,6 +59,7 @@ public interface ConstantsDataSharing
 	String PROFILE_TASK_MERGED_DATA_SET_MESSAGE_NAME = "mergedDataSet";
 
 	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier";
+	String EXTENSION_URL_DIC_IDENTIFIER_LEGACY = "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
 
 	String BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER = "projectIdentifier";
 	String BPMN_EXECUTION_VARIABLE_CONTRACT_URL = "contractUrl";

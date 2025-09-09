@@ -57,6 +57,7 @@ import de.medizininformatik_initiative.processes.common.crypto.KeyProviderImpl;
 import de.medizininformatik_initiative.processes.common.mimetype.CombinedDetectors;
 import de.medizininformatik_initiative.processes.common.mimetype.MimeTypeHelper;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
+import de.medizininformatik_initiative.processes.common.util.MetadataResourceConverter;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.ProcessPluginDeploymentStateListener;
 import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
@@ -130,12 +131,19 @@ public class DataSharingConfig
 	}
 
 	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public ProcessPluginDeploymentStateListener dataSharingProcessPluginDeploymentStateListener()
+	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+	public MetadataResourceConverter metadataResourceConverter()
 	{
 		String resourcesVersion = new DataSharingProcessPluginDefinition().getResourceVersion();
+		return new MetadataResourceConverter(api, resourcesVersion);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+	public ProcessPluginDeploymentStateListener dataSharingProcessPluginDeploymentStateListener()
+	{
 		return new DataSharingProcessPluginDeploymentStateListener(api, dicFhirClientConfig.fhirClientFactory(),
-				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms(), resourcesVersion);
+				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms(), metadataResourceConverter());
 	}
 
 	// coordinateDataSharing
