@@ -171,6 +171,12 @@
       <path value="Task.input" />
       <sliceName value="dic-correlation-key" />
       <min value="1" />
+      <constraint>
+        <key value="dic-identifier-extension-must-exist"/>
+        <severity value="error"/>
+        <human value="At least one of dic-identifier or dic-identifier-legacy extension must be present."/>
+        <expression value="extension('http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier').exists() or extension('http://medizininformatik-initiative.de/fhir/Extension/dic-identifier').exists()"/>
+      </constraint>
     </element>
     <element id="Task.input:dic-correlation-key.extension">
       <path value="Task.input.extension" />
@@ -181,12 +187,6 @@
         </discriminator>
         <rules value="open" />
       </slicing>
-      <constraint>
-        <key value="dic-identifier-extension-must-exist"/>
-        <severity value="error"/>
-        <human value="At least one of dic-identifier or dic-identifier-legacy extension must be present."/>
-        <expression value="extension('http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier').exists() or extension('http://medizininformatik-initiative.de/fhir/Extension/dic-identifier').exists()"/>
-      </constraint>
     </element>
     <element id="Task.input:dic-correlation-key.extension:dic-identifier">
       <path value="Task.input.extension" />
@@ -198,7 +198,10 @@
         <profile value="http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier|#{version}" />
       </type>
     </element>
-
+    <!--
+		TODO: dic-identifier-legacy added for backwards compatibility, because Extensions with different versions cannot
+		      be used in DSF API 1.x. Remove for DSF API 2.x where Extension versioning is fixed.
+	-->
     <element id="Task.input:dic-correlation-key.extension:dic-identifier-legacy">
       <path value="Task.input.extension" />
       <sliceName value="dic-identifier-legacy" />
@@ -209,7 +212,6 @@
       <path value="Task.input.extension.url" />
       <fixedUri value="http://medizininformatik-initiative.de/fhir/Extension/dic-identifier" />
     </element>
-
     <element id="Task.input:dic-correlation-key.type">
       <path value="Task.input.type" />
       <binding>
@@ -237,6 +239,53 @@
       <type>
         <code value="string" />
       </type>
+    </element>
+    <!--
+      TODO: document-reference-reference added for backwards compatibility, because CodeSystems with different versions cannot
+            be used in DSF API 1.x. Remove for DSF API 2.x where CodeSystem versioning is fixed.
+     -->
+    <element id="Task.output:document-reference-reference">
+      <path value="Task.output"/>
+      <sliceName value="document-reference-reference"/>
+      <min value="0"/>
+      <max value="*"/>
+    </element>
+    <element id="Task.output:document-reference-reference.type">
+      <path value="Task.output.type"/>
+      <binding>
+        <strength value="required"/>
+        <valueSet value="http://medizininformatik-initiative.de/fhir/ValueSet/data-sharing|#{version}"/>
+      </binding>
+    </element>
+    <element id="Task.output:document-reference-reference.type.coding">
+      <path value="Task.output.type.coding"/>
+      <min value="1"/>
+      <max value="1"/>
+    </element>
+    <element id="Task.output:document-reference-reference.type.coding.system">
+      <path value="Task.output.type.coding.system"/>
+      <min value="1"/>
+      <fixedUri value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"/>
+    </element>
+    <element id="Task.output:document-reference-reference.type.coding.code">
+      <path value="Task.output.type.coding.code"/>
+      <min value="1"/>
+      <fixedCode value="document-reference-reference"/>
+    </element>
+    <element id="Task.output:document-reference-reference.value[x]">
+      <path value="Task.output.value[x]"/>
+      <type>
+        <code value="Reference"/>
+        <targetProfile value="http://hl7.org/fhir/StructureDefinition/DocumentReference"/>
+      </type>
+    </element>
+    <element id="Task.output:document-reference-reference.value[x].reference">
+      <path value="Task.output.value[x].reference"/>
+      <min value="1"/>
+    </element>
+    <element id="Task.output:document-reference-reference.value[x].identifier">
+      <path value="Task.output.value[x].identifier"/>
+      <max value="0"/>
     </element>
     <element id="Task.output:document-reference-location">
       <path value="Task.output"/>

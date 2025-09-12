@@ -56,7 +56,7 @@ public class DataSharingProcessPluginDeploymentStateListener
 	{
 		// TODO: functions metadataResourceConverter.searchAndUpdateOlderResourcesIfCurrentIsNewest added because
 		// CodeSystems and StructureDefinition-Extensions with different versions cannot be used in DSF API 1.x.
-		// Remove for DSF API 2.x API where CodeSystem and StructureDefinition versioning is fixed.
+		// Remove for DSF API 2.x API where CodeSystem and StructureDefinition-Extension versioning is fixed.
 
 		metadataResourceConverter.searchAndConvertOlderResourcesIfCurrentIsNewestResource(
 				ConstantsDataSharing.CODESYSTEM_DATA_SHARING, CodeSystem.class,
