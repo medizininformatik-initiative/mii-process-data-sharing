@@ -52,7 +52,7 @@
       <path value="Task.input" />
       <sliceName value="dic-identifier" />
       <min value="1" />
-      <max value="*" />
+      <max value="1" />
     </element>
     <element id="Task.input:dic-identifier.type">
       <path value="Task.input.type" />

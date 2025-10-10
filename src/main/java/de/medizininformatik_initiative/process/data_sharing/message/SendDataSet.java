@@ -20,6 +20,8 @@ import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
 import dev.dsf.bpe.v1.variables.Variables;
 import dev.dsf.fhir.client.FhirWebserviceClient;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 
 public class SendDataSet extends AbstractTaskMessageSend implements InitializingBean
 {
@@ -44,14 +46,16 @@ public class SendDataSet extends AbstractTaskMessageSend implements Initializing
 	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
 			Variables variables)
 	{
-		String binaryId = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE);
+		String documentReferenceId = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION);
 
-		Task.ParameterComponent inputDataSetReference = new Task.ParameterComponent();
-		inputDataSetReference.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE);
-		inputDataSetReference.setValue(new Reference().setType(ResourceType.Binary.name()).setReference(binaryId));
+		Task.ParameterComponent documentReferenceComponent = new Task.ParameterComponent();
+		documentReferenceComponent.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_LOCATION);
+		documentReferenceComponent.setValue(
+				new Reference().setType(ResourceType.DocumentReference.name()).setReference(documentReferenceId));
 
-		return Stream.of(inputDataSetReference);
+		return Stream.of(documentReferenceComponent);
 	}
 
 	@Override
@@ -67,15 +71,29 @@ public class SendDataSet extends AbstractTaskMessageSend implements Initializing
 			String errorMessage)
 	{
 		Task task = variables.getStartTask();
-		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+
+		String statusCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_REACHABLE;
+		if (exception instanceof WebApplicationException webApplicationException
+				&& webApplicationException.getResponse() != null
+				&& webApplicationException.getResponse().getStatus() == Response.Status.FORBIDDEN.getStatusCode())
+		{
+			statusCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
+		}
+
+		task.setStatus(Task.TaskStatus.FAILED);
+		task.addOutput(
+				statusGenerator.createDataSetStatusOutput(statusCode, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
+						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Send data-set failed"));
+		variables.updateTask(task);
 
 		logger.warn(
-				"Could not send encrypted transferable data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}' - {}",
-				dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
+				"Could not send DocumentReference with id '{}' for project-identifier '{}' to DMS with identifier '{}' referenced in Task with id '{}' - {}",
+				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION),
+				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
+				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER), task.getId(),
+				exception.getMessage());
 
-		String error = "Send encrypted transferable data-set failed - " + exception.getMessage();
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, error);
+		String error = "Send DocumentReference location failed - " + exception.getMessage();
 		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error, exception);
 	}
 

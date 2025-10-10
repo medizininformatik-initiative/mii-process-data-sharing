@@ -41,8 +41,6 @@ public interface ConstantsDataSharing
 	String PROFILE_TASK_MERGE_DATA_SHARING_MESSAGE_NAME = "mergeDataSharing";
 
 	String PROFILE_TASK_SEND_DATA_SET = "http://medizininformatik-initiative.de/fhir/StructureDefinition/task-send-data-set";
-	String PROFILE_TASK_SEND_DATA_SET_PROCESS_URI = ConstantsBase.PROCESS_MII_URI_BASE
-			+ PROCESS_NAME_MERGE_DATA_SHARING;
 	String PROFILE_TASK_SEND_DATA_SET_MESSAGE_NAME = "sendDataSet";
 
 	String PROFILE_TASK_STATUS_DATA_SET = "http://medizininformatik-initiative.de/fhir/StructureDefinition/task-status-data-set";
@@ -60,17 +58,21 @@ public interface ConstantsDataSharing
 			+ PROCESS_NAME_COORDINATE_DATA_SHARING;
 	String PROFILE_TASK_MERGED_DATA_SET_MESSAGE_NAME = "mergedDataSet";
 
-	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
+	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier";
+	String EXTENSION_URL_DIC_IDENTIFIER_LEGACY = "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
 
 	String BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER = "projectIdentifier";
 	String BPMN_EXECUTION_VARIABLE_CONTRACT_URL = "contractUrl";
 	String BPMN_EXECUTION_VARIABLE_EXTRACTION_PERIOD = "extractionPeriod";
 	String BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS = "researcherIdentifiers";
 	String BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER = "dmsIdentifier";
-	String BPMN_EXECUTION_VARIABLE_DOCUMENT_REFERENCE = "documentReference";
-	String BPMN_EXECUTION_VARIABLE_DATA_RESOURCE = "dataResource";
+	String BPMN_EXECUTION_VARIABLE_INITIAL_DOCUMENT_REFERENCE = "initialDocumentReference";
+	String BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE = "transferDocumentReference";
+	String BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION = "transferDocumentReferenceLocation";
+	String BPMN_EXECUTION_VARIABLE_INITIAL_DATA_RESOURCES = "initialDataResources";
+	String BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES = "transferDataResources";
+
 	String BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE = "releaseDataSetInitialQuestionnaireResponse";
-	String BPMN_EXECUTION_VARIABLE_DATA_SET = "dataSet";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_ENCRYPTED = "dataSetEncrypted";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE = "dataSetReference";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_URL = "dataSetUrl";
@@ -95,12 +97,11 @@ public interface ConstantsDataSharing
 	String CODESYSTEM_DATA_SHARING_VALUE_DIC_CORRELATION_KEY = "dic-correlation-key";
 	String CODESYSTEM_DATA_SHARING_VALUE_DMS_IDENTIFIER = "dms-identifier";
 	String CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER = "project-identifier";
+	String CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_LOCATION = "document-reference-location";
 	String CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL = "contract-url";
 	String CODESYSTEM_DATA_SHARING_VALUE_EXTRACTION_PERIOD = "extraction-period";
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL = "data-set-url";
-	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE = "data-set-reference";
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_MISSING = "data-set-missing";
-	String CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_REFERENCE = "document-reference-reference";
 
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS = "data-set-status";
 
@@ -115,4 +116,6 @@ public interface ConstantsDataSharing
 
 	String DATA_EXTRACTION_PERIOD_DEFAULT_VALUE = "P28D";
 	String EXTENDED_DATA_EXTRACTION_PERIOD_DEFAULT_VALUE = "P5D";
+
+	String EXTENSION_LIST_ENTRY_MIMETYPE = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-list-entry-item-mimetype";
 }

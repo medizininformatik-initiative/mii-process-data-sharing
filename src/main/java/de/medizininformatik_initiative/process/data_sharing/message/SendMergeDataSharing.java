@@ -80,15 +80,8 @@ public class SendMergeDataSharing extends AbstractTaskMessageSend
 
 		try
 		{
-			if (task != null)
-			{
-				task.setStatus(Task.TaskStatus.FAILED);
-				api.getFhirWebserviceClientProvider().getLocalWebserviceClient().withMinimalReturn().update(task);
-			}
-			else
-			{
-				logger.warn("Start Task null, unable update Task with failed state");
-			}
+			task.setStatus(Task.TaskStatus.FAILED);
+			api.getFhirWebserviceClientProvider().getLocalWebserviceClient().withMinimalReturn().update(task);
 		}
 		finally
 		{

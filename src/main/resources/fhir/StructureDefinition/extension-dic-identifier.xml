@@ -37,7 +37,7 @@
 		</element>
 		<element id="Extension.url">
 			<path value="Extension.url" />
-			<fixedUri value="http://medizininformatik-initiative.de/fhir/Extension/dic-identifier" />
+			<fixedUri value="http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier" />
 		</element>
 		<element id="Extension.value[x]">
 			<path value="Extension.value[x]" />
