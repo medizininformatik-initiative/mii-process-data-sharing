@@ -1,28 +1,28 @@
 package de.medizininformatik_initiative.process.data_sharing.service.coordinate;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Endpoint;
+import org.hl7.fhir.r4.model.Identifier;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.CodeSystems;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class SelectDmsTarget extends AbstractServiceDelegate
+public class SelectDmsTarget implements ServiceTask
 {
-	public SelectDmsTarget(ProcessPluginApi api)
+	public SelectDmsTarget()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
-		String dms = getDmsIdentifier(variables);
-		Target target = getDmsTarget(dms, variables);
+		String dmsIdentifier = getDmsIdentifier(variables);
+		Target target = getDmsTarget(api, variables, dmsIdentifier);
 		variables.setTarget(target);
 	}
 
@@ -32,15 +32,26 @@ public class SelectDmsTarget extends AbstractServiceDelegate
 
 	}
 
-	private Target getDmsTarget(String identifier, Variables variables)
+	private Target getDmsTarget(ProcessPluginApi api, Variables variables, String dmsIdentifier)
+	{
+		Endpoint endpoint = getEndpoint(api, dmsIdentifier);
+		return variables.createTarget(dmsIdentifier, getEndpointIdentifierValue(endpoint), endpoint.getAddress());
+	}
+
+	private Endpoint getEndpoint(ProcessPluginApi api, String organizationIdentifier)
 	{
 		return api.getEndpointProvider().getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
-				NamingSystems.OrganizationIdentifier.withValue(identifier),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_DMS))
-				.map(e -> variables.createTarget(identifier, e.getIdentifierFirstRep().getValue(), e.getAddress()))
+				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
+				CodeSystems.OrganizationRole.dms())
 				.orElseThrow(() -> new RuntimeException(
-						"No Endpoint of DMS organization with identifier '" + identifier + "' found"));
+						"Could not find Endpoint of organization '" + organizationIdentifier + "'"));
+	}
+
+	private String getEndpointIdentifierValue(Endpoint endpoint)
+	{
+		return endpoint.getIdentifier().stream().filter(i -> NamingSystems.EndpointIdentifier.SID.equals(i.getSystem()))
+				.findFirst().map(Identifier::getValue).orElseThrow(() -> new RuntimeException(
+						"Endpoint '" + endpoint.getId() + "' does not contain any identifier"));
 	}
 }

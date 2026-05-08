@@ -1,47 +1,33 @@
 package de.medizininformatik_initiative.process.data_sharing.questionnaire;
 
-import java.util.Objects;
-
-import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
-import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.DefaultUserTaskListener;
+import dev.dsf.bpe.v2.activity.values.CreateQuestionnaireResponseValues;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class ReleaseDataSetListener extends DefaultUserTaskListener implements InitializingBean
+public class ReleaseDataSetListener extends DefaultUserTaskListener
 {
-	private final ProcessPluginApi api;
-	private final FhirClientFactory fhirStoreClientFactory;
+	private final String fhirStoreId;
 
-	public ReleaseDataSetListener(ProcessPluginApi api, FhirClientFactory fhirClientFactory)
+	public ReleaseDataSetListener(String fhirStoreId)
 	{
-		super(api);
-		this.api = api;
-		this.fhirStoreClientFactory = fhirClientFactory;
+		this.fhirStoreId = fhirStoreId;
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception
+	protected void beforeQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
+			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse beforeCreate)
 	{
-		super.afterPropertiesSet();
-		Objects.requireNonNull(fhirStoreClientFactory, "fhirClientFactory");
-	}
+		String fhirStoreBaseUrl = getDsfFhirServerAbsoluteIdById(api, fhirStoreId);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 
-	@Override
-	protected void beforeQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
-	{
-		String projectIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String dmsIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		String fhirStoreBaseUrl = fhirStoreClientFactory.getFhirBaseUrl();
-
-		questionnaireResponse.getItem().stream()
+		beforeCreate.getItem().stream()
 				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId())
 						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasText)
@@ -49,27 +35,25 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 	}
 
 	@Override
-	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
+	protected void afterQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
+			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse afterCreate)
 	{
-		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
-				id.getResourceType(), id.getIdPart(), null);
-
-		String projectIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String absoluteId = getDsfFhirServerAbsoluteIdLocal(api, afterCreate.getIdElement());
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
 		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING
 				+ "'";
 		String message = "A new user-task 'release-data-set' for data-sharing project '" + projectIdentifier
 				+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
-				+ absoluteId.getValue();
+				+ absoluteId;
+		// TODO: add Task.id to message similar to other emails
 
 		api.getMailService().send(subject, message);
 
-		api.getVariables(userTask.getExecution()).setResource(
+		variables.setFhirResource(
 				ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE,
-				questionnaireResponse);
+				afterCreate);
 	}
 
 	private void replace(QuestionnaireResponse.QuestionnaireResponseItemComponent item, String projectIdentifier,
@@ -98,5 +82,18 @@ public class ReleaseDataSetListener extends DefaultUserTaskListener implements I
 				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_DMS_IDENTIFIER, "\"" + dmsIdentifier + "\"")
 				.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_FHIR_STORE_BASE_URL,
 						"\"" + fhirStoreBaseUrl + "\"");
+	}
+
+	private String getDsfFhirServerAbsoluteIdLocal(ProcessPluginApi api, IdType idType)
+	{
+		return new IdType(api.getDsfClientProvider().getLocal().getBaseUrl(), idType.getResourceType(),
+				idType.getIdPart(), idType.getVersionIdPart()).getValue();
+	}
+
+	private String getDsfFhirServerAbsoluteIdById(ProcessPluginApi api, String fhirStoreId)
+	{
+		return api.getDsfClientProvider().getById(fhirStoreId)
+				.orElseThrow(() -> new RuntimeException("DSF FHIR client '" + fhirStoreId + "' not configured"))
+				.getBaseUrl();
 	}
 }

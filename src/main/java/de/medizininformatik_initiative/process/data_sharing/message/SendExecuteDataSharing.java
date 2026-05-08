@@ -1,37 +1,35 @@
 package de.medizininformatik_initiative.process.data_sharing.message;
 
-import java.util.stream.Stream;
+import java.util.List;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.UrlType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSenderWithTaskStorage;
+import de.medizininformatik_initiative.processes.common.error.MessageSendTaskErrorHandlerContinuingProcessWithTaskLog;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.error.MessageSendTaskErrorHandler;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class SendExecuteDataSharing extends AbstractTaskMessageSend
+public class SendExecuteDataSharing implements MessageSendTask
 {
-	private static final Logger logger = LoggerFactory.getLogger(SendExecuteDataSharing.class);
-
-	public SendExecuteDataSharing(ProcessPluginApi api)
+	public SendExecuteDataSharing()
 	{
-		super(api);
 	}
 
 	@Override
-	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-			Variables variables)
+	public List<Task.ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api, Variables variables,
+			SendTaskValues sendTaskValues, Target target)
 	{
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 		Task.ParameterComponent dmsIdentifierInput = getDmsIdentifierInput(dmsIdentifier);
@@ -42,68 +40,51 @@ public class SendExecuteDataSharing extends AbstractTaskMessageSend
 		String contractUrl = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL);
 		Task.ParameterComponent contractUrlInput = getContractUrlInput(contractUrl);
 
-		return Stream.of(dmsIdentifierInput, projectIdentifierInput, contractUrlInput);
+		return List.of(dmsIdentifierInput, projectIdentifierInput, contractUrlInput);
 	}
 
 	@Override
-	protected IdType doSend(FhirWebserviceClient client, Task task)
+	public TaskSender getTaskSender(ProcessPluginApi api, Variables variables, SendTaskValues sendTaskValues)
 	{
-		try
-		{
-			return client.withMinimalReturn()
-					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-					.create(task);
-		}
-		catch (Exception exception)
-		{
-			String taskJson = api.getFhirContext().newJsonParser().encodeResourceToString(task);
-			String recipient = task.getRestriction().getRecipient().stream().filter(Reference::hasIdentifier)
-					.map(r -> r.getIdentifier().getValue()).findFirst().orElse("unknown");
-			String projectIdentifier = task.getInput().stream()
-					.filter(i -> i.getType().getCoding().stream()
-							.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
-									&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER
-											.equals(c.getCode())))
-					.filter(Task.ParameterComponent::hasValue).map(Task.ParameterComponent::getValue)
-					.filter(t -> t instanceof Identifier).map(t -> (Identifier) t).map(Identifier::getValue).findFirst()
-					.orElse("unknown");
+		return new RetryTaskSenderWithTaskStorage(api, variables, sendTaskValues, getBusinessKeyStrategy(),
+				(target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
+	}
 
-			logger.warn(
-					"Could not start data extraction process at DIC with identifier '{}' for project-identifier '{}' "
-							+ "- task json for later attempt: {}",
-					recipient, projectIdentifier, taskJson);
-
-			throw exception;
-		}
+	@Override
+	public MessageSendTaskErrorHandler getErrorHandler()
+	{
+		return new MessageSendTaskErrorHandlerContinuingProcessWithTaskLog();
 	}
 
 	private Task.ParameterComponent getDmsIdentifierInput(String dmsIdentifier)
 	{
-		return api.getTaskHelper().createInput(
-				new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue(dmsIdentifier))
-						.setType(ResourceType.Organization.name()),
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DMS_IDENTIFIER);
+		Task.ParameterComponent input = new Task.ParameterComponent();
+		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DMS_IDENTIFIER);
+		input.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue(dmsIdentifier))
+				.setType(ResourceType.Organization.name()));
+
+		return input;
 	}
 
 	private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
 	{
-		Task.ParameterComponent projectIdentifierInput = new Task.ParameterComponent();
-		projectIdentifierInput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+		Task.ParameterComponent input = new Task.ParameterComponent();
+		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER);
-		projectIdentifierInput.setValue(new Identifier().setSystem(ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER)
+		input.setValue(new Identifier().setSystem(ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER)
 				.setValue(projectIdentifier));
 
-		return projectIdentifierInput;
+		return input;
 	}
 
 	private Task.ParameterComponent getContractUrlInput(String contractUrl)
 	{
-		Task.ParameterComponent contractUrlInput = new Task.ParameterComponent();
-		contractUrlInput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+		Task.ParameterComponent input = new Task.ParameterComponent();
+		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL);
-		contractUrlInput.setValue(new UrlType(contractUrl));
+		input.setValue(new UrlType(contractUrl));
 
-		return contractUrlInput;
+		return input;
 	}
 }

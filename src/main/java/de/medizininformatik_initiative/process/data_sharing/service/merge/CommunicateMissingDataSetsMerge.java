@@ -1,6 +1,5 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
@@ -8,31 +7,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Targets;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.service.MailService;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class CommunicateMissingDataSetsMerge extends AbstractServiceDelegate
+public class CommunicateMissingDataSetsMerge implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CommunicateMissingDataSetsMerge.class);
 
-	public CommunicateMissingDataSetsMerge(ProcessPluginApi api)
+	public CommunicateMissingDataSetsMerge()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		String taskId = variables.getStartTask().getId();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		Targets targets = variables.getTargets();
 
 		logMissingDataSets(targets, taskId, projectIdentifier);
-		sendMail(targets, projectIdentifier);
+		sendMail(api.getMailService(), targets, projectIdentifier);
 		outputMissingDataSets(targets, variables);
 	}
 
@@ -47,7 +46,7 @@ public class CommunicateMissingDataSetsMerge extends AbstractServiceDelegate
 				target.getOrganizationIdentifierValue(), projectIdentifier, taskId);
 	}
 
-	private void sendMail(Targets targets, String projectIdentifier)
+	private void sendMail(MailService mailService, Targets targets, String projectIdentifier)
 	{
 		String subject = "Missing data-sets in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
 				+ "'";
@@ -59,7 +58,7 @@ public class CommunicateMissingDataSetsMerge extends AbstractServiceDelegate
 		for (Target target : targets.getEntries())
 			message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
 
-		api.getMailService().send(subject, message.toString());
+		mailService.send(subject, message.toString());
 	}
 
 	private void outputMissingDataSets(Targets targets, Variables variables)

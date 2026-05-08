@@ -3,39 +3,37 @@ package de.medizininformatik_initiative.process.data_sharing.questionnaire;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
-import dev.dsf.bpe.v1.constants.BpmnExecutionVariables;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Targets;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.DefaultUserTaskListener;
+import dev.dsf.bpe.v2.activity.values.CreateQuestionnaireResponseValues;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
+import dev.dsf.bpe.v2.variables.Variables;
+
+;
 
 public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 {
-	private final ProcessPluginApi api;
-
-	public ReleaseConsolidateDataSetsListener(ProcessPluginApi api)
+	public ReleaseConsolidateDataSetsListener()
 	{
-		super(api);
-		this.api = api;
 	}
 
 	@Override
-	protected void beforeQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
+	protected void beforeQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
+			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse beforeCreate)
 	{
-		String projectIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String dmsIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		Targets targets = (Targets) userTask.getExecution().getVariable(BpmnExecutionVariables.TARGETS);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
+		Targets targets = variables.getTargets();
 
-		Optional<QuestionnaireResponse.QuestionnaireResponseItemComponent> displayItem = questionnaireResponse.getItem()
-				.stream().filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId()))
+		Optional<QuestionnaireResponse.QuestionnaireResponseItemComponent> displayItem = beforeCreate.getItem().stream()
+				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasText).findFirst();
 
 		if (displayItem.isPresent())
@@ -44,7 +42,7 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 			displayItem.get().setText(text);
 		}
 
-		questionnaireResponse.getItem().stream()
+		beforeCreate.getItem().stream()
 				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_EXTENDED_EXTRACTION_PERIOD.equals(i.getLinkId()))
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasAnswer)
 				.flatMap(i -> i.getAnswer().stream()).forEach(a -> replaceExtendedExtractionPeriodAnswerPlaceholder(a,
@@ -52,24 +50,22 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 	}
 
 	@Override
-	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
+	protected void afterQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
+			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse afterCreate)
 	{
-		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
-				id.getResourceType(), id.getIdPart(), null);
-
-		String projectIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String dmsIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
+		Task task = variables.getStartTask();
+		String absoluteId = getDsfFhirServerAbsoluteId(api, afterCreate.getIdElement());
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 
 		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING
 				+ "'";
 		String message = "A new user-task 'release-consolidate-data-sets' for data-sharing project '"
 				+ projectIdentifier + " and DMS '" + dmsIdentifier + "' in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING + "' for Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task)
 				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
-				+ absoluteId.getValue();
+				+ absoluteId;
 
 		api.getMailService().send(subject, message);
 	}
@@ -96,5 +92,11 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 	{
 		if (answer.getValue() instanceof StringType)
 			answer.setValue(new StringType(extendedExtractionPeriod));
+	}
+
+	private String getDsfFhirServerAbsoluteId(ProcessPluginApi api, IdType idType)
+	{
+		return new IdType(api.getDsfClientProvider().getLocal().getBaseUrl(), idType.getResourceType(),
+				idType.getIdPart(), idType.getVersionIdPart()).getValue();
 	}
 }

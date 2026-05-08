@@ -1,54 +1,60 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class HandleErrorMergeReceiveSendReceipt extends AbstractServiceDelegate
+public class HandleErrorMergeReceiveSendReceipt implements ServiceTask
 {
-	public HandleErrorMergeReceiveSendReceipt(ProcessPluginApi api)
+	private final boolean dmsEmailEnabled;
+
+	public HandleErrorMergeReceiveSendReceipt(boolean dmsEmailEnabled)
 	{
-		super(api);
+		this.dmsEmailEnabled = dmsEmailEnabled;
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task startTask = variables.getStartTask();
 		Task latestTask = variables.getLatestTask();
-		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String error = variables
-				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 
-		sendMail(latestTask, projectIdentifier, error);
-		failTaskIfNotStartTask(startTask, latestTask, variables);
+		if (dmsEmailEnabled)
+			sendMail(api, variables, startTask);
+
+		failTaskIfNotStartTask(api.getDsfClientProvider().getLocal(), startTask, latestTask, variables);
 	}
 
-	private void sendMail(Task latestTask, String projectIdentifier, String error)
+	private void sendMail(ProcessPluginApi api, Variables variables, Task task)
 	{
+		String error = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
-		String message = "Could not send data-set status receipt for new data-set in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '"
-				+ latestTask.getId() + "' to organization '" + latestTask.getRequester().getIdentifier().getValue()
-				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:\n"
-				+ (error == null ? "Unknown" : error);
+		String message = "Could not send receipt after successful download, decrypt, validate and insert data-set in process  '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' and Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' from organization '"
+				+ task.getRequester().getIdentifier().getValue() + "' and project-identifier '" + projectIdentifier
+				+ "':\n" + "- status code: " + ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR + "\n"
+				+ "- error: " + (error == null ? "none" : error);
 
 		api.getMailService().send(subject, message);
 	}
 
-	private void failTaskIfNotStartTask(Task startTask, Task latestTask, Variables variables)
+	private void failTaskIfNotStartTask(DsfClient client, Task startTask, Task latestTask, Variables variables)
 	{
-		if (latestTask != null && startTask != latestTask)
+		if (latestTask != null && Task.TaskStatus.FAILED != latestTask.getStatus() && startTask != latestTask)
 		{
 			latestTask.setStatus(Task.TaskStatus.FAILED);
-			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
-					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-					.update(latestTask);
+			client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(latestTask);
 			variables.updateTask(latestTask);
 		}
 	}

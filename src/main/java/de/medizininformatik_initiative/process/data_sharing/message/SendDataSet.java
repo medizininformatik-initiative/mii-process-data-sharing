@@ -1,105 +1,77 @@
 package de.medizininformatik_initiative.process.data_sharing.message;
 
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.function.Function;
 
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
-import org.hl7.fhir.r4.model.Task;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
+import org.hl7.fhir.r4.model.Task.ParameterComponent;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.error.MessageSendTaskErrorHandler;
+import dev.dsf.bpe.v2.error.impl.ExceptionToErrorBoundaryEventTranslationErrorHandler;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
-public class SendDataSet extends AbstractTaskMessageSend implements InitializingBean
+public class SendDataSet implements MessageSendTask
 {
-	private static final Logger logger = LoggerFactory.getLogger(SendDataSet.class);
-
-	private final DataSetStatusGenerator statusGenerator;
-
-	public SendDataSet(ProcessPluginApi api, DataSetStatusGenerator statusGenerator)
+	public SendDataSet()
 	{
-		super(api);
-		this.statusGenerator = statusGenerator;
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception
+	public List<ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api, Variables variables,
+			SendTaskValues sendTaskValues, Target target)
 	{
-		super.afterPropertiesSet();
-		Objects.requireNonNull(statusGenerator, "statusGenerator");
-	}
-
-	@Override
-	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-			Variables variables)
-	{
+		String version = api.getProcessPluginDefinition().getResourceVersion();
 		String documentReferenceId = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION);
 
-		Task.ParameterComponent documentReferenceComponent = new Task.ParameterComponent();
+		ParameterComponent documentReferenceComponent = new ParameterComponent();
 		documentReferenceComponent.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(version)
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_LOCATION);
 		documentReferenceComponent.setValue(
 				new Reference().setType(ResourceType.DocumentReference.name()).setReference(documentReferenceId));
 
-		return Stream.of(documentReferenceComponent);
+
+		return List.of(documentReferenceComponent);
 	}
 
 	@Override
-	protected IdType doSend(FhirWebserviceClient client, Task task)
+	public TaskSender getTaskSender(ProcessPluginApi api, Variables variables, SendTaskValues sendTaskValues)
 	{
-		return client.withMinimalReturn()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-				.create(task);
+		return new RetryTaskSender(api, variables, sendTaskValues, getBusinessKeyStrategy(),
+				(target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
 	}
 
 	@Override
-	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
-			String errorMessage)
+	public MessageSendTaskErrorHandler getErrorHandler()
 	{
-		Task task = variables.getStartTask();
-
-		String statusCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_REACHABLE;
-		if (exception instanceof WebApplicationException webApplicationException
-				&& webApplicationException.getResponse() != null
-				&& webApplicationException.getResponse().getStatus() == Response.Status.FORBIDDEN.getStatusCode())
+		Function<Exception, String> errorCodeTranslator = (exception) ->
 		{
-			statusCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
-		}
+			String errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_REACHABLE;
+			if (exception instanceof WebApplicationException webApplicationException
+					&& webApplicationException.getResponse() != null
+					&& webApplicationException.getResponse().getStatus() == Response.Status.FORBIDDEN.getStatusCode())
+			{
+				errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
+			}
 
-		task.setStatus(Task.TaskStatus.FAILED);
-		task.addOutput(
-				statusGenerator.createDataSetStatusOutput(statusCode, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Send data-set failed"));
-		variables.updateTask(task);
+			return errorCode;
+		};
 
-		logger.warn(
-				"Could not send DocumentReference with id '{}' for project-identifier '{}' to DMS with identifier '{}' referenced in Task with id '{}' - {}",
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION),
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER), task.getId(),
-				exception.getMessage());
+		Function<Exception, String> errorMessageTranslator = (exception) -> "Send dataSet failed"
+				+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
 
-		String error = "Send DocumentReference location failed - " + exception.getMessage();
-		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error, exception);
-	}
-
-	@Override
-	protected void addErrorMessage(Task task, String errorMessage)
-	{
-		// Override in order not to add error message of AbstractTaskMessageSend
+		return new ExceptionToErrorBoundaryEventTranslationErrorHandler(errorCodeTranslator, errorMessageTranslator);
 	}
 }

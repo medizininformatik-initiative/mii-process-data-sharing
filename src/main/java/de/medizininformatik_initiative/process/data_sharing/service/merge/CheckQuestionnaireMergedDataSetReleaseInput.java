@@ -4,8 +4,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.PrimitiveType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
@@ -16,21 +14,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractServiceDelegate
+public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CheckQuestionnaireMergedDataSetReleaseInput.class);
 
-	public CheckQuestionnaireMergedDataSetReleaseInput(ProcessPluginApi api)
+	public CheckQuestionnaireMergedDataSetReleaseInput()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task task = variables.getStartTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
@@ -45,8 +43,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 			variables.updateTask(task);
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_URL, dataSetUrl);
 
-			logger.info(
-					"Released merged data-set for HRP and data-sharing project '{}' referenced in Task with id '{}'",
+			logger.info("Released merged data-set for HRP and data-sharing project '{}' in Task '{}'",
 					projectIdentifier, task.getId());
 		}
 		else
@@ -59,7 +56,8 @@ public class CheckQuestionnaireMergedDataSetReleaseInput extends AbstractService
 			String error = "Release merged data-set failed - project identifier do not match (expected: "
 					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier
 					+ ") or merged data-set URL not present";
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, error);
+			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR,
+					error);
 		}
 	}
 

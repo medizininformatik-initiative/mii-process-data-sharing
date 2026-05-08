@@ -1,34 +1,34 @@
 package de.medizininformatik_initiative.process.data_sharing.message;
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.function.Function;
 
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.UrlType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.error.MessageSendTaskErrorHandler;
+import dev.dsf.bpe.v2.error.impl.ExceptionToErrorBoundaryEventTranslationErrorHandler;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 
-public class SendMergedDataSet extends AbstractTaskMessageSend
+public class SendMergedDataSet implements MessageSendTask
 {
-	private static final Logger logger = LoggerFactory.getLogger(SendMergedDataSet.class);
-
-	public SendMergedDataSet(ProcessPluginApi api)
+	public SendMergedDataSet()
 	{
-		super(api);
 	}
 
 	@Override
-	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-			Variables variables)
+	public List<Task.ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api, Variables variables,
+			SendTaskValues sendTaskValues, Target target)
 	{
 		String dataSetUrl = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_URL);
 
@@ -37,35 +37,35 @@ public class SendMergedDataSet extends AbstractTaskMessageSend
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL);
 		dataSetUrlInput.setValue(new UrlType().setValue(dataSetUrl));
 
-		return Stream.of(dataSetUrlInput);
+		return List.of(dataSetUrlInput);
 	}
 
 	@Override
-	protected IdType doSend(FhirWebserviceClient client, Task task)
+	public TaskSender getTaskSender(ProcessPluginApi api, Variables variables, SendTaskValues sendTaskValues)
 	{
-		return client.withMinimalReturn()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-				.create(task);
+		return new RetryTaskSender(api, variables, sendTaskValues, getBusinessKeyStrategy(),
+				(target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
 	}
 
 	@Override
-	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
-			String errorMessage)
+	public MessageSendTaskErrorHandler getErrorHandler()
 	{
-		logger.warn(
-				"Could not send merged data-set with url '{}' for project-identifier '{}' to HRP referenced in Task with id '{}' - {}",
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_URL),
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
-				variables.getStartTask().getId(), exception.getMessage());
+		Function<Exception, String> errorCodeTranslator = (exception) ->
+		{
+			String errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_REACHABLE;
+			if (exception instanceof WebApplicationException webApplicationException
+					&& webApplicationException.getResponse() != null
+					&& webApplicationException.getResponse().getStatus() == Response.Status.FORBIDDEN.getStatusCode())
+			{
+				errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
+			}
 
-		String error = "Send merged data-set failed - " + exception.getMessage();
-		throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, error,
-				exception);
-	}
+			return errorCode;
+		};
 
-	@Override
-	protected void addErrorMessage(Task task, String errorMessage)
-	{
-		// Override in order not to add error message of AbstractTaskMessageSend
+		Function<Exception, String> errorMessageTranslator = (exception) -> "Send mergedDataSet failed"
+				+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
+
+		return new ExceptionToErrorBoundaryEventTranslationErrorHandler(errorCodeTranslator, errorMessageTranslator);
 	}
 }

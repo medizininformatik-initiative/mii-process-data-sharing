@@ -61,6 +61,7 @@ public interface ConstantsDataSharing
 	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier";
 	String EXTENSION_URL_DIC_IDENTIFIER_LEGACY = "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
 
+	String BPMN_EXECUTION_VARIABLE_STATUS_TIMER_INTERVAL = "statusTimerInterval";
 	String BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER = "projectIdentifier";
 	String BPMN_EXECUTION_VARIABLE_CONTRACT_URL = "contractUrl";
 	String BPMN_EXECUTION_VARIABLE_EXTRACTION_PERIOD = "extractionPeriod";
@@ -73,8 +74,6 @@ public interface ConstantsDataSharing
 	String BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES = "transferDataResources";
 
 	String BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE = "releaseDataSetInitialQuestionnaireResponse";
-	String BPMN_EXECUTION_VARIABLE_DATA_SET_ENCRYPTED = "dataSetEncrypted";
-	String BPMN_EXECUTION_VARIABLE_DATA_SET_REFERENCE = "dataSetReference";
 	String BPMN_EXECUTION_VARIABLE_DATA_SET_URL = "dataSetUrl";
 	String BPMN_EXECUTION_VARIABLE_CONSOLIDATE_DATA_SETS_RELEASED = "consolidateDataSetReleased";
 	String BPMN_EXECUTION_VARIABLE_ALL_DATA_SETS_RECEIVED = "allDataSetsReceived";
@@ -102,6 +101,7 @@ public interface ConstantsDataSharing
 	String CODESYSTEM_DATA_SHARING_VALUE_EXTRACTION_PERIOD = "extraction-period";
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL = "data-set-url";
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_MISSING = "data-set-missing";
+	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED = "data-set-received";
 
 	String CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS = "data-set-status";
 

@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import de.medizininformatik_initiative.process.data_sharing.spring.config.DataSharingConfig;
-import de.medizininformatik_initiative.process.data_sharing.spring.config.DataSharingVariablesConfig;
-import de.medizininformatik_initiative.process.data_sharing.spring.config.DicFhirClientConfig;
-import de.medizininformatik_initiative.process.data_sharing.spring.config.DmsFhirClientConfig;
-import dev.dsf.bpe.v1.ProcessPluginDefinition;
+import dev.dsf.bpe.v2.ProcessPluginDefinition;
 
 public class DataSharingProcessPluginDefinition implements ProcessPluginDefinition
 {
-	public static final String VERSION = "1.1.1.0";
+	public static final String VERSION = "2.0.0.0";
 	public static final LocalDate RELEASE_DATE = LocalDate.of(2025, 10, 10);
 
 	@Override
@@ -42,8 +39,7 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 	@Override
 	public List<Class<?>> getSpringConfigurations()
 	{
-		return List.of(DataSharingConfig.class, DataSharingVariablesConfig.class, DicFhirClientConfig.class,
-				DmsFhirClientConfig.class);
+		return List.of(DataSharingConfig.class);
 	}
 
 	@Override

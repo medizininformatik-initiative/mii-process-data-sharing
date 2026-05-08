@@ -1,26 +1,24 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class StopReleaseDataSet extends AbstractServiceDelegate
+public class StopReleaseDataSet implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(StopReleaseDataSet.class);
 
-	public StopReleaseDataSet(ProcessPluginApi api)
+	public StopReleaseDataSet()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		logger.info(
 				"Extraction and transfer period of approved data sharing project was closed [project-identifier: {}; dms: {}; contract-url: {}; task-id: {}]",
@@ -29,9 +27,9 @@ public class StopReleaseDataSet extends AbstractServiceDelegate
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL),
 				variables.getStartTask().getId());
 
-		QuestionnaireResponse questionnaireResponse = variables.getResource(
+		QuestionnaireResponse questionnaireResponse = variables.getFhirResource(
 				ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE);
 		questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.STOPPED);
-		api.getFhirWebserviceClientProvider().getLocalWebserviceClient().update(questionnaireResponse);
+		api.getDsfClientProvider().getLocal().update(questionnaireResponse);
 	}
 }

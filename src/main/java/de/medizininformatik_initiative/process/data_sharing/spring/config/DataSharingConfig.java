@@ -8,8 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
-import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDefinition;
-import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDeploymentStateListener;
+import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDeploymentListener;
 import de.medizininformatik_initiative.process.data_sharing.message.SendConsolidateDataSets;
 import de.medizininformatik_initiative.process.data_sharing.message.SendDataSet;
 import de.medizininformatik_initiative.process.data_sharing.message.SendExecuteDataSharing;
@@ -39,7 +38,6 @@ import de.medizininformatik_initiative.process.data_sharing.service.execute.Prep
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ReadDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.SelectDataSetTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.StopReleaseDataSet;
-import de.medizininformatik_initiative.process.data_sharing.service.execute.StoreDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.execute.ValidateDataSetExecute;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.CheckQuestionnaireMergedDataSetReleaseInput;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.CommunicateMissingDataSetsMerge;
@@ -53,14 +51,10 @@ import de.medizininformatik_initiative.process.data_sharing.service.merge.Reinse
 import de.medizininformatik_initiative.process.data_sharing.service.merge.SelectDicTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.SelectHrpTarget;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
-import de.medizininformatik_initiative.processes.common.crypto.KeyProviderImpl;
-import de.medizininformatik_initiative.processes.common.mimetype.CombinedDetectors;
-import de.medizininformatik_initiative.processes.common.mimetype.MimeTypeHelper;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-import de.medizininformatik_initiative.processes.common.util.MetadataResourceConverter;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.ProcessPluginDeploymentStateListener;
-import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.ProcessPluginDeploymentListener;
+import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 
 @Configuration
 @ComponentScan(basePackages = "de.medizininformatik_initiative")
@@ -69,11 +63,15 @@ public class DataSharingConfig
 	@Autowired
 	private ProcessPluginApi api;
 
-	@Autowired
-	private DicFhirClientConfig dicFhirClientConfig;
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_coordinateDataSharing" }, description = "To receive e-mails as HRP, set to `true`")
+	@Value("${de.medizininformatik.initiative.data.sharing.hrp.email.enabled:false}")
+	private boolean hrpEmailEnabled;
 
-	@Autowired
-	private DmsFhirClientConfig dmsFhirClientConfig;
+	@ProcessDocumentation(required = true, processNames = {
+			"medizininformatik-initiativede_dataSend" }, description = "The ID of a DIC FHIR server from the main DSF configuration as 'DSF FHIR Client'", example = "dic-fhir-store")
+	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.id:#{null}}")
+	private String fhirStoreIdDic;
 
 	@ProcessDocumentation(processNames = {
 			"medizininformatik-initiativede_executeDataSharing" }, description = "To enable stream processing when reading Binary resources set to `true`")
@@ -86,9 +84,29 @@ public class DataSharingConfig
 	private boolean fhirBinaryStreamReadUseHapiBlobStorageOperation;
 
 	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_executeDataSharing" }, description = "To receive e-mails as DIC, set to `true`")
+	@Value("${de.medizininformatik.initiative.data.sharing.dic.email.enabled:false}")
+	private boolean dicEmailEnabled;
+
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_executeDataSharing" }, description = "The period the process waits to receive the status from the DMS, must be an ISO 8601 time duration pattern")
+	@Value("${de.medizininformatik.initiative.data.sharing.dic.status.timer.interval:PT45M}")
+	private String statusTimerInterval;
+
+	@ProcessDocumentation(required = true, processNames = {
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "The ID of a DIC FHIR server from the main DSF configuration as 'DSF FHIR Client'", example = "dic-fhir-store")
+	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.id:#{null}}")
+	private String fhirStoreIdDms;
+
+	@ProcessDocumentation(processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "To enable stream processing when writing Binary resources set to `true`")
 	@Value("${de.medizininformatik.initiative.data.sharing.dms.fhir.server.binary.stream.write.enabled:false}")
 	private boolean fhirBinaryStreamWriteEnabled;
+
+	@ProcessDocumentation(processNames = {
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "To receive e-mails as DMS, set to `true`")
+	@Value("${de.medizininformatik.initiative.data.sharing.dms.email.enabled:false}")
+	private boolean dmsEmailEnabled;
 
 	@ProcessDocumentation(required = true, processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
@@ -104,23 +122,16 @@ public class DataSharingConfig
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public MimeTypeHelper mimeTypeHelper()
-	{
-		return new MimeTypeHelper(CombinedDetectors.fromDefaultWithNdJson(), api.getFhirContext());
-	}
-
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public KeyProvider keyProviderDic()
 	{
-		return KeyProviderImpl.fromFiles(api, null, null, dicFhirClientConfig.dataLogger());
+		return KeyProvider.from(api);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public KeyProvider keyProviderDms()
 	{
-		return KeyProviderImpl.fromFiles(api, dmsPrivateKeyFile, dmsPublicKeyFile, dmsFhirClientConfig.dataLogger());
+		return KeyProvider.from(api, dmsPrivateKeyFile, dmsPublicKeyFile);
 	}
 
 	@Bean
@@ -132,18 +143,9 @@ public class DataSharingConfig
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-	public MetadataResourceConverter metadataResourceConverter()
+	public ProcessPluginDeploymentListener dataSharingProcessPluginDeploymentListener()
 	{
-		String resourcesVersion = new DataSharingProcessPluginDefinition().getResourceVersion();
-		return new MetadataResourceConverter(api, resourcesVersion);
-	}
-
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-	public ProcessPluginDeploymentStateListener dataSharingProcessPluginDeploymentStateListener()
-	{
-		return new DataSharingProcessPluginDeploymentStateListener(api, dicFhirClientConfig.fhirClientFactory(),
-				dmsFhirClientConfig.fhirClientFactory(), keyProviderDms(), metadataResourceConverter());
+		return new DataSharingProcessPluginDeploymentListener(api, fhirStoreIdDic, fhirStoreIdDms, keyProviderDms());
 	}
 
 	// coordinateDataSharing
@@ -152,91 +154,91 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public PrepareCoordination prepareCoordination()
 	{
-		return new PrepareCoordination(api);
+		return new PrepareCoordination();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SelectDicTargets selectDicTargets()
 	{
-		return new SelectDicTargets(api);
+		return new SelectDicTargets();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SelectDmsTarget selectDmsTarget()
 	{
-		return new SelectDmsTarget(api);
+		return new SelectDmsTarget();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendMergeDataSharing sendMergeDataSharing()
 	{
-		return new SendMergeDataSharing(api);
+		return new SendMergeDataSharing();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendExecuteDataSharing sendExecuteDataSharing()
 	{
-		return new SendExecuteDataSharing(api);
+		return new SendExecuteDataSharing();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CommunicateReceivedDataSet communicateReceivedDataSet()
 	{
-		return new CommunicateReceivedDataSet(api);
+		return new CommunicateReceivedDataSet(hrpEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CheckReceivedDataSets checkReceivedDataSets()
 	{
-		return new CheckReceivedDataSets(api);
+		return new CheckReceivedDataSets();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReleaseConsolidateDataSetsListener releaseConsolidateDataSetsListener()
 	{
-		return new ReleaseConsolidateDataSetsListener(api);
+		return new ReleaseConsolidateDataSetsListener();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CheckQuestionnaireConsolidateDataSetsReleaseInput checkQuestionnaireConsolidateDataSetsReleaseInput()
 	{
-		return new CheckQuestionnaireConsolidateDataSetsReleaseInput(api);
+		return new CheckQuestionnaireConsolidateDataSetsReleaseInput();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendConsolidateDataSets sendConsolidateDataSets()
 	{
-		return new SendConsolidateDataSets(api);
+		return new SendConsolidateDataSets();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CommunicateMissingDataSetsCoordinate communicateMissingDataSetsCoordinate()
 	{
-		return new CommunicateMissingDataSetsCoordinate(api);
+		return new CommunicateMissingDataSetsCoordinate(hrpEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendStopExecuteDataSharing sendStopExecuteDataSharing()
 	{
-		return new SendStopExecuteDataSharing(api);
+		return new SendStopExecuteDataSharing();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ExtractMergedDataSetUrl extractMergedDataSetUrl()
 	{
-		return new ExtractMergedDataSetUrl(api);
+		return new ExtractMergedDataSetUrl();
 	}
 
 	// executeDataSharing
@@ -245,94 +247,85 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public PrepareExecution prepareExecution()
 	{
-		return new PrepareExecution(api);
+		return new PrepareExecution(statusTimerInterval);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReleaseDataSetListener releaseDataSetListener()
 	{
-		return new ReleaseDataSetListener(api, dicFhirClientConfig.fhirClientFactory());
+		return new ReleaseDataSetListener(fhirStoreIdDic);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public StopReleaseDataSet stopReleaseDataSet()
 	{
-		return new StopReleaseDataSet(api);
+		return new StopReleaseDataSet();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorExecute handleErrorExecute()
 	{
-		return new HandleErrorExecute(api);
+		return new HandleErrorExecute(dataSetStatusGenerator(), dicEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CheckQuestionnaireDataSetReleaseInput checkQuestionnaireDataSetReleaseInput()
 	{
-		return new CheckQuestionnaireDataSetReleaseInput(api);
+		return new CheckQuestionnaireDataSetReleaseInput();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SelectDataSetTarget selectDataSetTarget()
 	{
-		return new SelectDataSetTarget(api);
+		return new SelectDataSetTarget();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReadDataSet readDataSet()
 	{
-		return new ReadDataSet(api, dicFhirClientConfig.fhirClientFactory(), fhirBinaryStreamReadEnabled,
-				dicFhirClientConfig.dataLogger());
+		return new ReadDataSet(fhirStoreIdDic, fhirBinaryStreamReadEnabled, statusTimerInterval);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ValidateDataSetExecute validateDataSetExecute()
 	{
-		return new ValidateDataSetExecute(api, mimeTypeHelper(), dicFhirClientConfig.fhirClientFactory(),
-				fhirBinaryStreamReadUseHapiBlobStorageOperation);
+		return new ValidateDataSetExecute(fhirStoreIdDic, fhirBinaryStreamReadUseHapiBlobStorageOperation);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public EncryptAndStoreDataSet encryptAndStoreDataSet()
 	{
-		return new EncryptAndStoreDataSet(api, keyProviderDic(), dicFhirClientConfig.fhirClientFactory(),
-				dataSetStatusGenerator(), fhirBinaryStreamReadUseHapiBlobStorageOperation);
-	}
-
-	@Bean
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public StoreDataSet storeDataSet()
-	{
-		return new StoreDataSet(api, dicFhirClientConfig.dataLogger());
+		return new EncryptAndStoreDataSet(fhirStoreIdDic, fhirBinaryStreamReadUseHapiBlobStorageOperation,
+				dataSetStatusGenerator(), keyProviderDic(), dicEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendDataSet sendDataSet()
 	{
-		return new SendDataSet(api, dataSetStatusGenerator());
+		return new SendDataSet();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public DeleteDataSet deleteDataSet()
 	{
-		return new DeleteDataSet(api);
+		return new DeleteDataSet();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleReceipt handleReceipt()
 	{
-		return new HandleReceipt(api, dataSetStatusGenerator());
+		return new HandleReceipt(dataSetStatusGenerator());
 	}
 
 	// mergeDataSharing
@@ -341,51 +334,49 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public PrepareMerging prepareMerging()
 	{
-		return new PrepareMerging(api);
+		return new PrepareMerging();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendInitializeNewProjectDataSharing sendInitializeNewProjectDataSharing()
 	{
-		return new SendInitializeNewProjectDataSharing(api, dmsFhirClientConfig.fhirClientFactory());
+		return new SendInitializeNewProjectDataSharing(fhirStoreIdDms);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public DownloadDataSet downloadDataSet()
 	{
-		return new DownloadDataSet(api, dataSetStatusGenerator(), fhirBinaryStreamWriteEnabled,
-				dmsFhirClientConfig.dataLogger());
+		return new DownloadDataSet(dataSetStatusGenerator(), fhirBinaryStreamWriteEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public DecryptValidateAndInsertDataSet decryptValidateAndInsertDataSet()
 	{
-		return new DecryptValidateAndInsertDataSet(api, keyProviderDms(), mimeTypeHelper(),
-				dmsFhirClientConfig.fhirClientFactory(), dataSetStatusGenerator());
+		return new DecryptValidateAndInsertDataSet(fhirStoreIdDms, keyProviderDms(), dataSetStatusGenerator());
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorMergeReceiveDownloadInsert handleErrorMergeReceiveDownloadInsert()
 	{
-		return new HandleErrorMergeReceiveDownloadInsert(api);
+		return new HandleErrorMergeReceiveDownloadInsert(dmsEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorMergeReceiveSendReceipt handleErrorMergeReceiveSendReceipt()
 	{
-		return new HandleErrorMergeReceiveSendReceipt(api);
+		return new HandleErrorMergeReceiveSendReceipt(dmsEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SelectDicTarget selectDicTarget()
 	{
-		return new SelectDicTarget(api);
+		return new SelectDicTarget();
 	}
 
 	@Bean
@@ -399,55 +390,55 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReinsertTarget reinsertTarget()
 	{
-		return new ReinsertTarget(api);
+		return new ReinsertTarget();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendReceivedDataSet sendReceivedDataSet()
 	{
-		return new SendReceivedDataSet(api);
+		return new SendReceivedDataSet(api, dataSetStatusGenerator());
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorMergeRelease handleErrorMergeRelease()
 	{
-		return new HandleErrorMergeRelease(api);
+		return new HandleErrorMergeRelease();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CommunicateMissingDataSetsMerge communicateMissingDataSetsMerge()
 	{
-		return new CommunicateMissingDataSetsMerge(api);
+		return new CommunicateMissingDataSetsMerge();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReleaseMergedDataSetListener releaseMergedDataSetListener()
 	{
-		return new ReleaseMergedDataSetListener(api);
+		return new ReleaseMergedDataSetListener();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CheckQuestionnaireMergedDataSetReleaseInput checkQuestionnaireMergedDataSetReleaseInput()
 	{
-		return new CheckQuestionnaireMergedDataSetReleaseInput(api);
+		return new CheckQuestionnaireMergedDataSetReleaseInput();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SelectHrpTarget selectHrpTarget()
 	{
-		return new SelectHrpTarget(api);
+		return new SelectHrpTarget();
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SendMergedDataSet sendMergedDataSet()
 	{
-		return new SendMergedDataSet(api);
+		return new SendMergedDataSet();
 	}
 }

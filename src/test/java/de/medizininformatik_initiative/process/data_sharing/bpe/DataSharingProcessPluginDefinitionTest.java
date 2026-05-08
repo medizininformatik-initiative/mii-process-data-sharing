@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDefinition;
-import dev.dsf.bpe.v1.ProcessPluginDefinition;
+import dev.dsf.bpe.v2.ProcessPluginDefinition;
 
 public class DataSharingProcessPluginDefinitionTest
 {

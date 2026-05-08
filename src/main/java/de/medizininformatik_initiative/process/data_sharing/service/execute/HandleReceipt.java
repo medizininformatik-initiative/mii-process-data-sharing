@@ -2,8 +2,6 @@ package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
 import java.util.Objects;
 
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
@@ -13,31 +11,31 @@ import org.springframework.beans.factory.InitializingBean;
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.service.MailService;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class HandleReceipt extends AbstractServiceDelegate implements InitializingBean
+public class HandleReceipt implements ServiceTask, InitializingBean
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleReceipt.class);
 
 	private final DataSetStatusGenerator statusGenerator;
 
-	public HandleReceipt(ProcessPluginApi api, DataSetStatusGenerator statusGenerator)
+	public HandleReceipt(DataSetStatusGenerator statusGenerator)
 	{
-		super(api);
 		this.statusGenerator = statusGenerator;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception
 	{
-		super.afterPropertiesSet();
 		Objects.requireNonNull(statusGenerator, "statusGenerator");
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
@@ -45,7 +43,9 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		Task startTask = variables.getStartTask();
 		Task latestTask = variables.getLatestTask();
 
-		Task.ParameterComponent statusCodeInput = getDataSetStatusInput(latestTask);
+		String resourceVersion = api.getProcessPluginDefinition().getResourceVersion();
+
+		Task.ParameterComponent statusCodeInput = getDataSetStatusInput(latestTask, resourceVersion);
 		String statusCode = getDataSetStatusCode(statusCodeInput);
 		String error = getDataSetStatusError(statusCodeInput);
 
@@ -55,10 +55,10 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 					"Task with id '{}' for project-identifier '{}' and DMS with identifier '{}' has data-set status code '{}'",
 					startTask.getId(), projectIdentifier, dmsIdentifier, statusCode);
 
-			transformInputToOutput(startTask, latestTask);
+			transformInputToOutput(startTask, latestTask, resourceVersion);
 			variables.updateTask(startTask);
 
-			sendSuccessfulMail(startTask, projectIdentifier, dmsIdentifier, statusCode);
+			sendSuccessfulMail(api.getMailService(), startTask, projectIdentifier, dmsIdentifier, statusCode);
 		}
 		else
 		{
@@ -68,27 +68,29 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 					dmsIdentifier, projectIdentifier, startTask.getId(), errorLog);
 
 			String errorMessage = "Deliver encrypted transferable data-set failed" + errorLog;
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, errorMessage);
+
+			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
+					errorMessage);
 		}
 	}
 
-	private Task.ParameterComponent getDataSetStatusInput(Task task)
+	private Task.ParameterComponent getDataSetStatusInput(Task task, String resourceVersion)
 	{
 		if (task != null)
 			return task.getInput().stream().filter(i -> i.getType().getCoding().stream()
 					.anyMatch(c -> ConstantsDataSharing.CODESYSTEM_DATA_SHARING.equals(c.getSystem())
 							&& ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS.equals(c.getCode())))
-					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(getMissingReceipt());
+					.filter(i -> i.getValue() instanceof Coding).findFirst().orElse(getMissingReceipt(resourceVersion));
 		else
-			return getMissingReceipt();
+			return getMissingReceipt(resourceVersion);
 	}
 
-	private Task.ParameterComponent getMissingReceipt()
+	private Task.ParameterComponent getMissingReceipt(String resourceVersion)
 	{
-		return statusGenerator.createDataSetStatusInput(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS,
-				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING);
+		return statusGenerator.createDataSetStatusInput(resourceVersion,
+				ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_MISSING,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING, resourceVersion,
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
 	}
 
 	private String getDataSetStatusCode(Task.ParameterComponent input)
@@ -101,14 +103,15 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "";
 	}
 
-	private void transformInputToOutput(Task startTask, Task latestTask)
+	private void transformInputToOutput(Task startTask, Task latestTask, String resourceVersion)
 	{
 		if (latestTask != null)
 			statusGenerator.transformInputToOutput(latestTask, startTask, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
+					resourceVersion, ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
 	}
 
-	private void sendSuccessfulMail(Task task, String projectIdentifier, String dmsIdentifier, String code)
+	private void sendSuccessfulMail(MailService mailService, Task task, String projectIdentifier, String dmsIdentifier,
+			String code)
 	{
 		String subject = "Data-set successfully delivered in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
@@ -117,6 +120,6 @@ public class HandleReceipt extends AbstractServiceDelegate implements Initializi
 				+ "' to/from DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
 				+ "' with status code '" + code + "'";
 
-		api.getMailService().send(subject, message);
+		mailService.send(subject, message);
 	}
 }

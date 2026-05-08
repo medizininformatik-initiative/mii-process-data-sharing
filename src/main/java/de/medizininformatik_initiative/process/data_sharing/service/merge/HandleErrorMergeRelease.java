@@ -1,36 +1,35 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.service.MailService;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class HandleErrorMergeRelease extends AbstractServiceDelegate
+public class HandleErrorMergeRelease implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeRelease.class);
 
-	public HandleErrorMergeRelease(ProcessPluginApi api)
+	public HandleErrorMergeRelease()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task startTask = variables.getStartTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		String error = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE);
 
-		sendMail(startTask, projectIdentifier, error);
+		sendMail(api.getMailService(), startTask, projectIdentifier, error);
 	}
 
-	private void sendMail(Task startTask, String projectIdentifier, String error)
+	private void sendMail(MailService mailService, Task startTask, String projectIdentifier, String error)
 	{
 		logger.warn("{} - creating new user-task 'release-merged-data-set'", error);
 
@@ -42,6 +41,6 @@ public class HandleErrorMergeRelease extends AbstractServiceDelegate
 				+ (error == null ? "Unknown" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-merged-data-set'.";
 
-		api.getMailService().send(subject, message);
+		mailService.send(subject, message);
 	}
 }
