@@ -26,19 +26,20 @@ public class HandleErrorMergeRelease implements ServiceTask
 		String error = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE);
 
+		logger.warn("Recreating user-task 'release-merged-data-set'");
 		sendMail(api.getMailService(), startTask, projectIdentifier, error);
 	}
 
 	private void sendMail(MailService mailService, Task startTask, String projectIdentifier, String error)
 	{
-		logger.warn("{} - creating new user-task 'release-merged-data-set'", error);
+
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
 		String message = "Could not merge data-sets in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + startTask.getId()
 				+ "' requested from organization '" + startTask.getRequester().getIdentifier().getValue()
 				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:\n"
-				+ (error == null ? "Unknown" : error) + "\n\n"
+				+ (error == null ? "unknown" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-merged-data-set'.";
 
 		mailService.send(subject, message);

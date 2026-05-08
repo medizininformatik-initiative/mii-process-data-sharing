@@ -82,7 +82,7 @@
         <camunda:taskListener class="de.medizininformatik_initiative.process.data_sharing.questionnaire.ReleaseConsolidateDataSetsListener" event="create" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1e3sfy0</bpmn:incoming>
-      <bpmn:incoming>Flow_0f49a4o</bpmn:incoming>
+      <bpmn:incoming>Flow_1bhvjgi</bpmn:incoming>
       <bpmn:outgoing>Flow_1wufgwv</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sendTask id="Activity_0rh1hj0" name="send consolidate data-sets" camunda:class="de.medizininformatik_initiative.process.data_sharing.message.SendConsolidateDataSets">
@@ -183,7 +183,7 @@
       <bpmn:outgoing>Flow_0f49a4o</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_1rb3lcm" errorRef="Error_0o0z568" camunda:errorCodeVariable="coordinateDataSharingError" camunda:errorMessageVariable="coordinateDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
-    <bpmn:sequenceFlow id="Flow_0f49a4o" sourceRef="coordinateSendConsolidateError" targetRef="Activity_0cufu8w" />
+    <bpmn:sequenceFlow id="Flow_0f49a4o" sourceRef="coordinateSendConsolidateError" targetRef="handleErrorCoordinate" />
     <bpmn:sendTask id="closeDicDataExtractionPeriod" name="close dic data-extraction period" camunda:class="de.medizininformatik_initiative.process.data_sharing.message.SendStopExecuteDataSharing">
       <bpmn:extensionElements>
         <camunda:field name="instantiatesCanonical">
@@ -203,6 +203,11 @@
     <bpmn:sequenceFlow id="Flow_1ixijre" sourceRef="Gateway_0n4qktl" targetRef="extractMergedDataSetUrl" />
     <bpmn:sequenceFlow id="Flow_1pd65bl" sourceRef="closeDicDataExtractionPeriod" targetRef="Activity_0rh1hj0" />
     <bpmn:sequenceFlow id="Flow_09dddxh" sourceRef="Activity_0rh1hj0" targetRef="Gateway_0n4qktl" />
+    <bpmn:sequenceFlow id="Flow_1bhvjgi" sourceRef="handleErrorCoordinate" targetRef="Activity_0cufu8w" />
+    <bpmn:serviceTask id="handleErrorCoordinate" name="handle error" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.execute.HandleErrorCoordinate">
+      <bpmn:incoming>Flow_0f49a4o</bpmn:incoming>
+      <bpmn:outgoing>Flow_1bhvjgi</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:message id="Message_2tdo6h2" name="coordinateDataSharing" />
   <bpmn:message id="Message_3lh87td" name="mergedDataSet" />
@@ -313,6 +318,9 @@
       <bpmndi:BPMNShape id="Activity_0vr9wqd_di" bpmnElement="closeDicDataExtractionPeriod">
         <dc:Bounds x="2125" y="234" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16evn0g_di" bpmnElement="handleErrorCoordinate">
+        <dc:Bounds x="1810" y="320" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1qtoak9_di" bpmnElement="coordinateSendConsolidateError">
         <dc:Bounds x="2292" y="296" width="36" height="36" />
@@ -432,8 +440,7 @@
       <bpmndi:BPMNEdge id="Flow_0f49a4o_di" bpmnElement="Flow_0f49a4o">
         <di:waypoint x="2310" y="332" />
         <di:waypoint x="2310" y="360" />
-        <di:waypoint x="1560" y="360" />
-        <di:waypoint x="1560" y="314" />
+        <di:waypoint x="1910" y="360" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ixijre_di" bpmnElement="Flow_1ixijre">
         <di:waypoint x="2385" y="387" />
@@ -446,6 +453,11 @@
       <bpmndi:BPMNEdge id="Flow_09dddxh_di" bpmnElement="Flow_09dddxh">
         <di:waypoint x="2360" y="314" />
         <di:waypoint x="2360" y="362" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bhvjgi_di" bpmnElement="Flow_1bhvjgi">
+        <di:waypoint x="1810" y="360" />
+        <di:waypoint x="1560" y="360" />
+        <di:waypoint x="1560" y="314" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

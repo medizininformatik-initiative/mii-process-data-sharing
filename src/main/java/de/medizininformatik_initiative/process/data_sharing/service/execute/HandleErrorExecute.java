@@ -4,11 +4,14 @@ import java.util.Objects;
 
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
+
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
@@ -16,6 +19,8 @@ import dev.dsf.bpe.v2.variables.Variables;
 
 public class HandleErrorExecute implements ServiceTask, InitializingBean
 {
+	private static final Logger logger = LoggerFactory.getLogger(HandleErrorExecute.class);
+
 	private final DataSetStatusGenerator statusGenerator;
 	private final boolean dicEmailEnabled;
 
@@ -42,6 +47,7 @@ public class HandleErrorExecute implements ServiceTask, InitializingBean
 
 		failTaskIfNotStartTask(api, startTask, latestTask, errorCode, errorMessage, variables);
 
+		logger.warn("Recreating user-task 'release-data-set'");
 		if (dicEmailEnabled)
 			sendMail(api, startTask, variables, errorMessage);
 

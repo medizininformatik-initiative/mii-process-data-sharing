@@ -26,6 +26,7 @@ import de.medizininformatik_initiative.process.data_sharing.service.coordinate.C
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateMissingDataSetsCoordinate;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.CommunicateReceivedDataSet;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.ExtractMergedDataSetUrl;
+import de.medizininformatik_initiative.process.data_sharing.service.coordinate.HandleErrorCoordinate;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.PrepareCoordination;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.SelectDicTargets;
 import de.medizininformatik_initiative.process.data_sharing.service.coordinate.SelectDmsTarget;
@@ -218,6 +219,13 @@ public class DataSharingConfig
 	public SendConsolidateDataSets sendConsolidateDataSets()
 	{
 		return new SendConsolidateDataSets();
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public HandleErrorCoordinate handleErrorCoordinate()
+	{
+		return new HandleErrorCoordinate(hrpEmailEnabled);
 	}
 
 	@Bean
