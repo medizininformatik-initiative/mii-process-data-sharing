@@ -11,11 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.fhir.context.FhirContext;
-
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.MimeTypeHelper;
-
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
@@ -52,19 +50,19 @@ public class ValidateDataSetExecute implements ServiceTask
 		{
 			DsfClient client = getDsfClientForFhirStore(api.getDsfClientProvider(), fhirStoreId);
 
-			List<Resource> resources = variables.getFhirResourceList(
-					ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_INITIAL_DATA_RESOURCES);
+			List<Resource> resources = variables
+					.getFhirResourceList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_INITIAL_DATA_RESOURCES);
 			resources.forEach(r -> validate(client, api.getFhirContext(), api.getMimeTypeService(), r));
 		}
 		catch (Exception exception)
 		{
 			logger.warn(
 					"Could not validate data-set for DMS '{}' and project-identifier '{}' referenced in Task with id '{}'"
-							+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + "{}", dmsIdentifier, projectIdentifier,
-					task.getId(), exception.getMessage());
+							+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + "{}",
+					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
 
-			String error =
-					"Validating data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
+			String error = "Validating data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+					+ exception.getMessage();
 			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
 					error);
 		}

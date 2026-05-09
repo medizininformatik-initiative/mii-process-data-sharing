@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
@@ -55,10 +54,9 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 					"Could not release merged data-set for HRP and data-sharing project '{}' referenced in Task with id '{}': expected and provided project identifier do not match (expected: {}, provided: {}) or merged data-set URL is not present",
 					projectIdentifier, task.getId(), expectedIdentifier, projectIdentifier.toLowerCase());
 
-			String error = "Release merged data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER +
-			" project identifier do not match (expected: "
-					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier
-					+ ") or merged data-set URL not present";
+			String error = "Release merged data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+					+ " project identifier do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
+					+ expectedIdentifier + ") or merged data-set URL not present";
 			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR,
 					error);
 		}

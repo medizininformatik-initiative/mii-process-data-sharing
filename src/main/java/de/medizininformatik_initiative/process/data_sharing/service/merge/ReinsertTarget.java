@@ -36,8 +36,8 @@ public class ReinsertTarget implements ServiceTask
 		Target reinsertTarget = variables.createTarget(dicIdentifier, dicEndpoint.getIdentifierFirstRep().getValue(),
 				dicEndpoint.getAddress(), correlationKey);
 
-		logger.warn(
-				"Error during data-set receive" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + "reinserting target for organization '{}' with correlation-key '{}' and data-sharing project '{}' referenced in Task with id '{}'",
+		logger.warn("Error during data-set receive" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+				+ "reinserting target for organization '{}' with correlation-key '{}' and data-sharing project '{}' referenced in Task with id '{}'",
 				reinsertTarget.getOrganizationIdentifierValue(), correlationKey,
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
 				latestTask.getId());
