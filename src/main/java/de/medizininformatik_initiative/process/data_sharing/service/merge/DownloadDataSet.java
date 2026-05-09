@@ -166,7 +166,7 @@ public class DownloadDataSet implements ServiceTask, InitializingBean
 			}
 			catch (Exception exception)
 			{
-				throw new RuntimeException("Downloading attachment failed - " + exception.getMessage(), exception);
+				throw new RuntimeException("Downloading attachment failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage(), exception);
 			}
 		}
 	}

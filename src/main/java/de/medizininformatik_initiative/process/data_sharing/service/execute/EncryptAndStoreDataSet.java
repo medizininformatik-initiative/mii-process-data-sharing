@@ -193,7 +193,7 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 		catch (Exception exception)
 		{
 			throw new RuntimeException(
-					"Could not extract PublicKey from Binary in PublicKey Bundle - " + exception.getMessage(),
+					"Could not extract PublicKey from Binary in PublicKey Bundle"  + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage(),
 					exception);
 		}
 	}
@@ -324,7 +324,7 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 		catch (Exception exception)
 		{
 			throw new RuntimeException(
-					"Could not encrypt data-set (inputstream) to transmit - " + exception.getMessage(), exception);
+					"Could not encrypt data-set (inputstream) to transmit"  + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage(), exception);
 		}
 	}
 
@@ -339,7 +339,7 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 		}
 		catch (Exception exception)
 		{
-			throw new RuntimeException("Could not encrypt data-set (resource) to transmit - " + exception.getMessage(),
+			throw new RuntimeException("Could not encrypt data-set (resource) to transmit" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage(),
 					exception);
 		}
 	}
@@ -359,7 +359,7 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 		}
 		catch (Exception exception)
 		{
-			throw new RuntimeException("Could not store Binary - " + exception.getMessage(), exception);
+			throw new RuntimeException("Could not store Binary" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage(), exception);
 		}
 	}
 

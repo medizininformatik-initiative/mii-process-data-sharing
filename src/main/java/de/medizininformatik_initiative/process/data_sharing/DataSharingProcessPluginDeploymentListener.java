@@ -7,6 +7,8 @@ import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.ProcessPluginDeploymentListener;
 
@@ -58,6 +60,6 @@ public class DataSharingProcessPluginDeploymentListener implements ProcessPlugin
 				.getConformance();
 
 		Objects.requireNonNull(conformance,
-				"Connection test for DSF FHIR client '" + fhirStoreId + "' failed - CapabilityStatement is null");
+				"Connection test for DSF FHIR client '" + fhirStoreId + "' failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + "CapabilityStatement is null");
 	}
 }
