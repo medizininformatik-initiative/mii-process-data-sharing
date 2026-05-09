@@ -41,8 +41,9 @@ public class DeleteDataSet implements ServiceTask
 				.getFhirResource(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES);
 
 		logger.info(
-				"Permanently deleting data-set provided for DMS '{}' and project-identifier '{}' for Task '{}' (DocumentReference with id '{}' and its encrypted attachments)",
-				dmsIdentifier, projectIdentifier, task.getId(), transferDocumentReferenceLocation);
+				"Permanently deleting data-set provided for DMS '{}' and project-identifier '{}' in Task '{}' (DocumentReference '{}' and its encrypted attachments)",
+				dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
+				transferDocumentReferenceLocation);
 
 		List<IdType> attachments = getAttachmentIds(transferBinaryReferenceList);
 

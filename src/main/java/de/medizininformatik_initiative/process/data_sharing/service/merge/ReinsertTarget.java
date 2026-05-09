@@ -1,6 +1,5 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Endpoint;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
@@ -57,14 +56,15 @@ public class ReinsertTarget implements ServiceTask
 		return task.getRequester().getIdentifier().getValue();
 	}
 
-	private Endpoint getDicEndpoint(EndpointProvider endpointProvider, String dicIdentifier)
+	private Endpoint getDicEndpoint(EndpointProvider endpointProvider, String organizationIdentifier)
 	{
 		return endpointProvider.getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
-				NamingSystems.OrganizationIdentifier.withValue(dicIdentifier),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_DIC))
-				.orElseThrow(() -> new RuntimeException("No endpoint for dic with identifier '" + dicIdentifier + "'"));
+				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
+				CodeSystems.OrganizationRole.dic())
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier + "'"));
 	}
 
 	private String extractCorrelationKey(TaskHelper helper, Task task)

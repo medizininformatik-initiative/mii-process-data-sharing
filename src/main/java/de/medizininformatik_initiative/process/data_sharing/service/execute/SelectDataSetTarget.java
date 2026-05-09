@@ -1,6 +1,5 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
@@ -39,20 +38,20 @@ public class SelectDataSetTarget implements ServiceTask
 	{
 		Task task = variables.getStartTask();
 		return api.getTaskHelper().getFirstInputParameterStringValue(task, CodeSystems.BpmnMessage.correlationKey())
-				.orElseThrow(
-						() -> new RuntimeException("No correlation key found in Task with id '" + task.getId() + "'"));
+				.orElseThrow(() -> new RuntimeException("Task.input:correlation-key missing"));
 	}
 
-	private Target getDmsTarget(ProcessPluginApi api, String identifier, String correlationKey, Variables variables)
+	private Target getDmsTarget(ProcessPluginApi api, String organizationIdentifier, String correlationKey,
+			Variables variables)
 	{
 		return api.getEndpointProvider().getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
-				NamingSystems.OrganizationIdentifier.withValue(identifier),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_DMS))
-				.map(e -> variables.createTarget(identifier, e.getIdentifierFirstRep().getValue(), e.getAddress(),
-						correlationKey))
-				.orElseThrow(
-						() -> new RuntimeException("No Endpoint of DMS with identifier '" + identifier + "' found"));
+				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
+				CodeSystems.OrganizationRole.dms())
+				.map(e -> variables.createTarget(organizationIdentifier, e.getIdentifierFirstRep().getValue(),
+						e.getAddress(), correlationKey))
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier + "'"));
 	}
 }

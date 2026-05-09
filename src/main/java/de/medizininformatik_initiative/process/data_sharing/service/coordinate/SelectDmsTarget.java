@@ -44,8 +44,9 @@ public class SelectDmsTarget implements ServiceTask
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
 				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
 				CodeSystems.OrganizationRole.dms())
-				.orElseThrow(() -> new RuntimeException(
-						"Could not find Endpoint of organization '" + organizationIdentifier + "'"));
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier + "'"));
 	}
 
 	private String getEndpointIdentifierValue(Endpoint endpoint)

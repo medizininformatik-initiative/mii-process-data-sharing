@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
@@ -34,19 +35,20 @@ public class CheckQuestionnaireDataSetReleaseInput implements ServiceTask
 
 		if (projectIdentifierMatch(questionnaireResponse, projectIdentifier))
 		{
-			logger.info("Released data-set provided for DMS '{}' and data-sharing project '{}' for Task '{}'",
-					dmsIdentifier, projectIdentifier, task.getId());
+			logger.info("Released data-set for transfer to DMS '{}' and project-identifier '{}' for Task '{}'",
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 		}
 		else
 		{
 			String expectedIdentifier = getProjectIdentifier(questionnaireResponse);
 			logger.warn(
-					"Could not release data-set for DMS '{}' and data-sharing project '{}' for Task '{}': expected and provided project identifier do not match (expected: {}, provided: {})",
-					dmsIdentifier, projectIdentifier, task.getId(), expectedIdentifier,
+					"Could not release data-set for project-identifier '{}' to DMS '{}' for Task '{}': expected and provided project-identifier do not match (expected: {}, provided: {})",
+					projectIdentifier, dmsIdentifier, task.getId(), expectedIdentifier,
 					projectIdentifier.toLowerCase());
 
-			String error = "Release data-set failed - project identifier do not match (expected: "
-					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier + ")";
+			String error = "Release data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+					+ "project-identifiers do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
+					+ expectedIdentifier + ")";
 			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
 					error);
 		}

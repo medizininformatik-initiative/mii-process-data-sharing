@@ -204,7 +204,7 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReleaseConsolidateDataSetsListener releaseConsolidateDataSetsListener()
 	{
-		return new ReleaseConsolidateDataSetsListener();
+		return new ReleaseConsolidateDataSetsListener(hrpEmailEnabled);
 	}
 
 	@Bean
@@ -262,7 +262,7 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReleaseDataSetListener releaseDataSetListener()
 	{
-		return new ReleaseDataSetListener(fhirStoreIdDic);
+		return new ReleaseDataSetListener(fhirStoreIdDic, dicEmailEnabled);
 	}
 
 	@Bean
@@ -297,7 +297,7 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReadDataSet readDataSet()
 	{
-		return new ReadDataSet(fhirStoreIdDic, fhirBinaryStreamReadEnabled, statusTimerInterval);
+		return new ReadDataSet(fhirStoreIdDic, fhirBinaryStreamReadEnabled);
 	}
 
 	@Bean
@@ -333,7 +333,7 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleReceipt handleReceipt()
 	{
-		return new HandleReceipt(dataSetStatusGenerator());
+		return new HandleReceipt(dataSetStatusGenerator(), dicEmailEnabled);
 	}
 
 	// mergeDataSharing
@@ -426,7 +426,7 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public ReleaseMergedDataSetListener releaseMergedDataSetListener()
 	{
-		return new ReleaseMergedDataSetListener();
+		return new ReleaseMergedDataSetListener(dmsEmailEnabled);
 	}
 
 	@Bean

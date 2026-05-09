@@ -14,7 +14,6 @@ import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenera
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
-import dev.dsf.bpe.v2.service.MailService;
 import dev.dsf.bpe.v2.variables.Variables;
 
 public class HandleReceipt implements ServiceTask, InitializingBean
@@ -22,10 +21,12 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 	private static final Logger logger = LoggerFactory.getLogger(HandleReceipt.class);
 
 	private final DataSetStatusGenerator statusGenerator;
+	private final boolean dicEmailEnabled;
 
-	public HandleReceipt(DataSetStatusGenerator statusGenerator)
+	public HandleReceipt(DataSetStatusGenerator statusGenerator, boolean dicEmailEnabled)
 	{
 		this.statusGenerator = statusGenerator;
+		this.dicEmailEnabled = dicEmailEnabled;
 	}
 
 	@Override
@@ -37,11 +38,11 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
-		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-
 		Task startTask = variables.getStartTask();
 		Task latestTask = variables.getLatestTask();
+
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 
 		String resourceVersion = api.getProcessPluginDefinition().getResourceVersion();
 
@@ -52,25 +53,25 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 		if (ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIPT_OK.equals(statusCode))
 		{
 			logger.info(
-					"Task with id '{}' for project-identifier '{}' and DMS with identifier '{}' has data-set status code '{}'",
-					startTask.getId(), projectIdentifier, dmsIdentifier, statusCode);
+					"Delivering encrypted data-set for DMS '{}' and project-identifier '{}' has status code '{}' in Task '{}'",
+					dmsIdentifier, projectIdentifier, statusCode,
+					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(startTask));
 
 			transformInputToOutput(startTask, latestTask, resourceVersion);
 			variables.updateTask(startTask);
 
-			sendSuccessfulMail(api.getMailService(), startTask, projectIdentifier, dmsIdentifier, statusCode);
+			if (dicEmailEnabled)
+				sendSuccessfulMail(api, startTask, projectIdentifier, dmsIdentifier, statusCode);
 		}
 		else
 		{
-			String errorLog = error.isBlank() ? "" : " - " + error;
-			logger.warn(
-					"Could not deliver encrypted transferable data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}'{}",
-					dmsIdentifier, projectIdentifier, startTask.getId(), errorLog);
-
-			String errorMessage = "Deliver encrypted transferable data-set failed" + errorLog;
+			String errorLog = error.isBlank() ? "" : ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + error;
+			logger.warn("Could not deliver encrypted data-set for DMS '{}' and project-identifier '{}' in Task '{}'{}",
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(startTask),
+					errorLog);
 
 			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
-					errorMessage);
+					"Deliver encrypted data-set failed" + errorLog);
 		}
 	}
 
@@ -110,16 +111,16 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 					resourceVersion, ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS);
 	}
 
-	private void sendSuccessfulMail(MailService mailService, Task task, String projectIdentifier, String dmsIdentifier,
+	private void sendSuccessfulMail(ProcessPluginApi api, Task task, String projectIdentifier, String dmsIdentifier,
 			String code)
 	{
 		String subject = "Data-set successfully delivered in process '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
 		String message = "A data-set has been successfully delivered and retrieved in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '" + task.getId()
-				+ "' to/from DMS with identifier '" + dmsIdentifier + "' for project-identifier '" + projectIdentifier
-				+ "' with status code '" + code + "'";
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' and Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' to/from DMS '" + dmsIdentifier
+				+ "' regarding project-identifier '" + projectIdentifier + "' with status code '" + code + "'";
 
-		mailService.send(subject, message);
+		api.getMailService().send(subject, message);
 	}
 }

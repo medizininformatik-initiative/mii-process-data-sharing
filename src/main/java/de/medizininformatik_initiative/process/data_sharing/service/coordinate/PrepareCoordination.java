@@ -22,6 +22,7 @@ public class PrepareCoordination implements ServiceTask
 
 	public PrepareCoordination()
 	{
+		// TODO: all log messages in repositories should have the same format
 	}
 
 	@Override
@@ -49,7 +50,7 @@ public class PrepareCoordination implements ServiceTask
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER, dmsIdentifier);
 
 		logger.info(
-				"Starting coordination of approved data-sharing project for project-identifier '{}' with contract-url '{}', extraction-period '{}', researchers {}, DMS '{}' and DICs {} in Task '{}'",
+				"Starting coordination of approved data-sharing project '{}' with contract-url '{}', extraction-period '{}', researchers {}, DMS '{}' and DICs {} in Task '{}'",
 				projectIdentifier, contractUrl, extractionPeriod, researcherIdentifiers, dmsIdentifier, dicIdentifiers,
 				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 	}

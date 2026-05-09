@@ -82,9 +82,8 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 		List<Resource> resources = variables
 				.getFhirResourceList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_INITIAL_DATA_RESOURCES);
 
-		logger.info(
-				"Encrypting and storing data-set for DMS '{}' and project-identifier '{}' referenced in Task with id '{}'",
-				dmsIdentifier, projectIdentifier, task.getId());
+		logger.info("Encrypting and storing data-set for DMS '{}' and project-identifier '{}' in Task '{}'",
+				dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 
 		ListResource transferBinaryReferenceList = new ListResource();
 		PublicKey publicKey = readPublicKey(api, dmsIdentifier, projectIdentifier, task);
@@ -118,7 +117,8 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 					transferBinaryReferenceList);
 
 			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT,
-					"Encrypting and storing data-set failed - " + exception.getMessage());
+					"Encrypting and storing data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+							+ exception.getMessage());
 		}
 	}
 

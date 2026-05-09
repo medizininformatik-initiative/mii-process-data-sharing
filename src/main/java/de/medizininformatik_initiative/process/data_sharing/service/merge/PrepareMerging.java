@@ -16,6 +16,7 @@ import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.service.EndpointProvider;
 import dev.dsf.bpe.v2.service.TaskHelper;
@@ -108,11 +109,11 @@ public class PrepareMerging implements ServiceTask
 		return endpointProvider.getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
 				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_DIC))
+				CodeSystems.OrganizationRole.dic())
 				.map(e -> variables.createTarget(organizationIdentifier, e.getIdentifierFirstRep().getValue(),
 						e.getAddress(), correlationKey))
-				.orElseThrow(() -> new RuntimeException(
-						"No endpoint of found for organization '" + organizationIdentifier + "'"));
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier + "'"));
 	}
 }

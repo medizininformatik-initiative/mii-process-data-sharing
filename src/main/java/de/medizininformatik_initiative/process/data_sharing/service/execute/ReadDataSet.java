@@ -4,22 +4,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.ListResource;
-import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.variables.DataResource;
@@ -29,46 +25,30 @@ import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.service.DsfClientProvider;
-import dev.dsf.bpe.v2.service.TaskHelper;
 import dev.dsf.bpe.v2.variables.Variables;
 
-public class ReadDataSet implements ServiceTask, InitializingBean
+public class ReadDataSet implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(ReadDataSet.class);
 
-	private static final String ISO_8601_DURATION_STRING = "^P(?:([0-9]+)Y)?(?:([0-9]+)M)?(?:([0-9]+)D)?(T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)(?:[.,]([0-9]{0,9}))?S)?)?$";
-	private static final Pattern ISO_8601_DURATION = Pattern.compile(ISO_8601_DURATION_STRING);
-
 	private final String fhirStoreId;
 	private final boolean fhirBinaryStreamReadEnabled;
-	private final String statusTimerInterval;
 
-	public ReadDataSet(String fhirStoreId, boolean fhirBinaryStreamReadEnabled, String statusTimerInterval)
+	public ReadDataSet(String fhirStoreId, boolean fhirBinaryStreamReadEnabled)
 	{
 		this.fhirStoreId = fhirStoreId;
 		this.fhirBinaryStreamReadEnabled = fhirBinaryStreamReadEnabled;
-		this.statusTimerInterval = statusTimerInterval;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception
-	{
-		if (!ISO_8601_DURATION.matcher(statusTimerInterval).matches())
-			throw new IllegalArgumentException(
-					"statusTimerInterval '" + statusTimerInterval + "' not in ISO 8601 time duration format");
 	}
 
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task task = variables.getStartTask();
-		String dmsIdentifier = getDmsIdentifier(api.getTaskHelper(), task);
-		String projectIdentifier = getProjectIdentifier(api.getTaskHelper(), task);
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
-		logger.info(
-				"Executing data-set transfer for DMS '{}' and project-identifier '{}' with status timer interval '{}' in Task '{}'",
-				dmsIdentifier, projectIdentifier, statusTimerInterval,
-				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
+		logger.info("Reading data-set for DMS '{}' and project-identifier '{}' in Task '{}'", dmsIdentifier,
+				projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 
 		try
 		{
@@ -79,8 +59,6 @@ public class ReadDataSet implements ServiceTask, InitializingBean
 			Stream<DataResource> attachments = readAttachments(client, documentReference);
 			List<Resource> resources = getResources(attachments);
 
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER, projectIdentifier);
-			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER, dmsIdentifier);
 			variables.setFhirResource(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_INITIAL_DOCUMENT_REFERENCE,
 					documentReference);
 			variables.setFhirResourceList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_INITIAL_DATA_RESOURCES,
@@ -92,33 +70,6 @@ public class ReadDataSet implements ServiceTask, InitializingBean
 			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
 					error);
 		}
-	}
-
-	private String getProjectIdentifier(TaskHelper helper, Task task)
-	{
-		List<String> identifiers = helper
-				.getInputParameterValues(task, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER, Identifier.class)
-				.filter(i -> ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER.equals(i.getSystem()))
-				.map(Identifier::getValue).toList();
-
-		if (identifiers.isEmpty())
-			throw new IllegalArgumentException("Task.input:project-identifier missing");
-
-		if (identifiers.size() > 1)
-			logger.warn("Found {} Task.input:project-identifier, using the first '{}' from Task '{}'",
-					identifiers.size(), identifiers.getFirst(), helper.getLocalVersionlessAbsoluteUrl(task));
-
-		return identifiers.getFirst();
-	}
-
-	private String getDmsIdentifier(TaskHelper helper, Task task)
-	{
-		return helper
-				.getFirstInputParameterValue(task, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DMS_IDENTIFIER, Reference.class)
-				.orElseThrow(() -> new IllegalArgumentException("Task.input:dms-identifier missing")).getIdentifier()
-				.getValue();
 	}
 
 	private DsfClient getDsfClientForFhirStore(DsfClientProvider provider, String fhirStoreId)

@@ -21,11 +21,11 @@ public class StopReleaseDataSet implements ServiceTask
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		logger.info(
-				"Extraction and transfer period of approved data sharing project was closed [project-identifier: {}; dms: {}; contract-url: {}; task-id: {}]",
-				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
+				"Transfer-period for data-sharing data-set transfer to DMS '{}', project-identifier '{}' and contract-url '{} was closed for Task '{}'",
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER),
+				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL),
-				variables.getStartTask().getId());
+				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(variables.getStartTask()));
 
 		QuestionnaireResponse questionnaireResponse = variables.getFhirResource(
 				ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE);

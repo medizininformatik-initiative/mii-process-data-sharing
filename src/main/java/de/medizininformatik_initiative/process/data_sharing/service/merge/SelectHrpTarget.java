@@ -8,6 +8,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.service.EndpointProvider;
 import dev.dsf.bpe.v2.service.OrganizationProvider;
@@ -39,15 +40,16 @@ public class SelectHrpTarget implements ServiceTask
 				.findFirst().orElseThrow(() -> new RuntimeException("No organization with role HRP found"));
 	}
 
-	private Target getHrpTarget(EndpointProvider endpointProvider, String identifier, Variables variables)
+	private Target getHrpTarget(EndpointProvider endpointProvider, String organizationIdentifier, Variables variables)
 	{
 		return endpointProvider.getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
-				NamingSystems.OrganizationIdentifier.withValue(identifier),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_HRP))
-				.map(e -> variables.createTarget(identifier, e.getIdentifierFirstRep().getValue(), e.getAddress()))
-				.orElseThrow(() -> new RuntimeException(
-						"No Endpoint of organization with with identifier '" + identifier + "' found"));
+				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
+				CodeSystems.OrganizationRole.hrp())
+				.map(e -> variables.createTarget(organizationIdentifier, e.getIdentifierFirstRep().getValue(),
+						e.getAddress()))
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier + "'"));
 	}
 }

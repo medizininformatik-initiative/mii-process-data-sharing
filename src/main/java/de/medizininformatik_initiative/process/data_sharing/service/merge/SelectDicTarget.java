@@ -8,6 +8,7 @@ import org.hl7.fhir.r4.model.Task;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.service.EndpointProvider;
 import dev.dsf.bpe.v2.variables.Target;
@@ -35,15 +36,14 @@ public class SelectDicTarget implements ServiceTask
 		return task.getRequester().getIdentifier();
 	}
 
-	private Endpoint getDicEndpoint(EndpointProvider endpointProvider, Identifier dicIdentifier)
+	private Endpoint getDicEndpoint(EndpointProvider endpointProvider, Identifier organizationIdentifier)
 	{
-		Identifier parentIdentifier = NamingSystems.OrganizationIdentifier.withValue(
-				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM);
-		Coding role = new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-				.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_DIC);
-		return endpointProvider.getEndpoint(parentIdentifier, dicIdentifier, role)
-				.orElseThrow(() -> new RuntimeException(
-						"Could not find default endpoint of organization '" + dicIdentifier.getValue() + "'"));
+		return endpointProvider.getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
+				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
+				organizationIdentifier, CodeSystems.OrganizationRole.dic())
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier.getValue() + "'"));
 	}
 
 	private Target createTarget(Variables variables, Identifier dicIdentifier, Endpoint dicEndpoint)

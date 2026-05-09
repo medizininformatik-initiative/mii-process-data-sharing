@@ -20,8 +20,11 @@ import dev.dsf.bpe.v2.variables.Variables;
 
 public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 {
-	public ReleaseConsolidateDataSetsListener()
+	private final boolean hrpEmailEnabled;
+
+	public ReleaseConsolidateDataSetsListener(boolean hrpEmailEnabled)
 	{
+		this.hrpEmailEnabled = hrpEmailEnabled;
 	}
 
 	@Override
@@ -53,21 +56,25 @@ public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 	protected void afterQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
 			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse afterCreate)
 	{
-		Task task = variables.getStartTask();
-		String absoluteId = getDsfFhirServerAbsoluteId(api, afterCreate.getIdElement());
-		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
+		if (hrpEmailEnabled)
+		{
+			Task task = variables.getStartTask();
+			String absoluteId = getDsfFhirServerAbsoluteId(api, afterCreate.getIdElement());
+			String projectIdentifier = variables
+					.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+			String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 
-		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING
-				+ "'";
-		String message = "A new user-task 'release-consolidate-data-sets' for data-sharing project '"
-				+ projectIdentifier + " and DMS '" + dmsIdentifier + "' in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING + "' for Task '"
-				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task)
-				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
-				+ absoluteId;
+			String subject = "New user-task in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING + "'";
+			String message = "A new user-task 'release-consolidate-data-sets' for data-sharing project '"
+					+ projectIdentifier + " and DMS '" + dmsIdentifier + "' in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING + "' for Task '"
+					+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task)
+					+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
+					+ absoluteId;
 
-		api.getMailService().send(subject, message);
+			api.getMailService().send(subject, message);
+		}
 	}
 
 	private String replaceText(String toReplace, String projectIdentifier, String dmsIdentifier, Targets targets)

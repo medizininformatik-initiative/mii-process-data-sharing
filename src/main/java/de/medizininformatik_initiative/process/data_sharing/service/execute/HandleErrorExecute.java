@@ -11,7 +11,6 @@ import org.springframework.beans.factory.InitializingBean;
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
@@ -55,7 +54,7 @@ public class HandleErrorExecute implements ServiceTask, InitializingBean
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, null);
 	}
 
-	private void sendMail(ProcessPluginApi api, Task task, Variables variables, String errorMessage)
+	private void sendMail(ProcessPluginApi api, Task task, Variables variables, String error)
 	{
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
@@ -70,7 +69,7 @@ public class HandleErrorExecute implements ServiceTask, InitializingBean
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' and Task '"
 				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' for DMS '" + dmsIdentifier
 				+ "' regarding project-identifier '" + projectIdentifier + "':\n" + "- status code: " + statusCode
-				+ "\n" + "- error: " + (errorMessage == null ? "none" : errorMessage);
+				+ "\n" + "- error: " + (error == null ? "none" : error);
 
 		api.getMailService().send(subject, message);
 	}

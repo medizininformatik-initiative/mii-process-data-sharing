@@ -3,6 +3,7 @@ package de.medizininformatik_initiative.process.data_sharing.questionnaire;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import dev.dsf.bpe.v2.ProcessPluginApi;
@@ -12,8 +13,11 @@ import dev.dsf.bpe.v2.variables.Variables;
 
 public class ReleaseMergedDataSetListener extends DefaultUserTaskListener
 {
-	public ReleaseMergedDataSetListener()
+	private final boolean dmsEmailEnabled;
+
+	public ReleaseMergedDataSetListener(boolean dmsEmailEnabled)
 	{
+		this.dmsEmailEnabled = dmsEmailEnabled;
 	}
 
 	protected void beforeQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
@@ -33,17 +37,23 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener
 	protected void afterQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
 			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse afterCreate)
 	{
-		String absoluteId = getDsfFhirServerAbsoluteId(api, afterCreate.getIdElement());
-		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		if (dmsEmailEnabled)
+		{
+			Task task = variables.getStartTask();
+			String absoluteId = getDsfFhirServerAbsoluteId(api, afterCreate.getIdElement());
+			String projectIdentifier = variables
+					.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
-		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
-		String message = "A new user-task 'release-merged-data-set' for data-sharing project '" + projectIdentifier
-				+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
-				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
-				+ absoluteId;
-		// TODO: add Task.id to message similar to other emails
+			String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
+					+ "'";
+			String message = "A new user-task 'release-merged-data-set' for data-sharing project '" + projectIdentifier
+					+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+					+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task)
+					+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
+					+ absoluteId;
 
-		api.getMailService().send(subject, message);
+			api.getMailService().send(subject, message);
+		}
 	}
 
 	private void replace(QuestionnaireResponse.QuestionnaireResponseItemComponent item, String projectIdentifier)
