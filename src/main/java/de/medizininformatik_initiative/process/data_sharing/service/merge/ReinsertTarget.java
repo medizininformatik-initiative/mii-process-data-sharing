@@ -46,6 +46,7 @@ public class ReinsertTarget implements ServiceTask
 
 		variables.setTarget(reinsertTarget);
 
+		// latestTask not updated automatically in error case
 		updateLatestTaskIfNotStartTask(api, startTask, latestTask);
 
 		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_EXISTS,
