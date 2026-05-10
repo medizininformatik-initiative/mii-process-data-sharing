@@ -7,15 +7,17 @@ import org.slf4j.LoggerFactory;
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
-import dev.dsf.bpe.v2.service.MailService;
 import dev.dsf.bpe.v2.variables.Variables;
 
 public class HandleErrorMergeRelease implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeRelease.class);
 
-	public HandleErrorMergeRelease()
+	private final boolean dmsEmailEnabled;
+
+	public HandleErrorMergeRelease(boolean dmsEmailEnabled)
 	{
+		this.dmsEmailEnabled = dmsEmailEnabled;
 	}
 
 	@Override
@@ -27,21 +29,24 @@ public class HandleErrorMergeRelease implements ServiceTask
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE);
 
 		logger.warn("Recreating user-task 'release-merged-data-set'");
-		sendMail(api.getMailService(), startTask, projectIdentifier, error);
+		if (dmsEmailEnabled)
+			sendMail(api, startTask, projectIdentifier, error);
+
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, null);
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
+				null);
 	}
 
-	private void sendMail(MailService mailService, Task startTask, String projectIdentifier, String error)
+	private void sendMail(ProcessPluginApi api, Task task, String projectIdentifier, String error)
 	{
-
-
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
 		String message = "Could not merge data-sets in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + startTask.getId()
-				+ "' requested from organization '" + startTask.getRequester().getIdentifier().getValue()
-				+ "' for project-identifier '" + projectIdentifier + "'.\n\nError:\n"
-				+ (error == null ? "unknown" : error) + "\n\n"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' requested from organization '"
+				+ task.getRequester().getIdentifier().getValue() + "' for project-identifier '" + projectIdentifier
+				+ "'.\n\nError:\n" + (error == null ? "unknown" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-merged-data-set'.";
 
-		mailService.send(subject, message);
+		api.getMailService().send(subject, message);
 	}
 }

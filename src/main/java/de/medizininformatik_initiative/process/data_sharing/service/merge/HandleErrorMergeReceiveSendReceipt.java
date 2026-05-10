@@ -1,22 +1,32 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
+import java.util.Objects;
+
 import org.hl7.fhir.r4.model.Task;
+import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
-import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
-import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.variables.Variables;
 
-public class HandleErrorMergeReceiveSendReceipt implements ServiceTask
+public class HandleErrorMergeReceiveSendReceipt implements ServiceTask, InitializingBean
 {
+	private final DataSetStatusGenerator statusGenerator;
 	private final boolean dmsEmailEnabled;
 
-	public HandleErrorMergeReceiveSendReceipt(boolean dmsEmailEnabled)
+	public HandleErrorMergeReceiveSendReceipt(DataSetStatusGenerator statusGenerator, boolean dmsEmailEnabled)
 	{
+		this.statusGenerator = statusGenerator;
 		this.dmsEmailEnabled = dmsEmailEnabled;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception
+	{
+		Objects.requireNonNull(statusGenerator, "statusGenerator");
 	}
 
 	@Override
@@ -24,17 +34,23 @@ public class HandleErrorMergeReceiveSendReceipt implements ServiceTask
 	{
 		Task startTask = variables.getStartTask();
 		Task latestTask = variables.getLatestTask();
+		String errorCode = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR);
+		String errorMessage = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 
 		if (dmsEmailEnabled)
-			sendMail(api, variables, startTask);
+			sendMail(api, variables, startTask, errorMessage);
 
-		failTaskIfNotStartTask(api.getDsfClientProvider().getLocal(), startTask, latestTask, variables);
+		failAndAddOutputLatestTaskIfNotStartTask(api, startTask, latestTask, errorCode, errorMessage, variables);
+
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, null);
+		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
+				null);
 	}
 
-	private void sendMail(ProcessPluginApi api, Variables variables, Task task)
+	private void sendMail(ProcessPluginApi api, Variables variables, Task task, String error)
 	{
-		String error = variables
-				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
@@ -48,13 +64,16 @@ public class HandleErrorMergeReceiveSendReceipt implements ServiceTask
 		api.getMailService().send(subject, message);
 	}
 
-	private void failTaskIfNotStartTask(DsfClient client, Task startTask, Task latestTask, Variables variables)
+	private void failAndAddOutputLatestTaskIfNotStartTask(ProcessPluginApi api, Task startTask, Task latestTask,
+			String errorCode, String errorMessage, Variables variables)
 	{
-		if (latestTask != null && Task.TaskStatus.FAILED != latestTask.getStatus() && startTask != latestTask)
+		if (latestTask != null && startTask != latestTask)
 		{
 			latestTask.setStatus(Task.TaskStatus.FAILED);
-			client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(latestTask);
+			latestTask.addOutput(statusGenerator.createDataSetStatusOutput(
+					api.getProcessPluginDefinition().getResourceVersion(), errorCode,
+					ConstantsDataSharing.CODESYSTEM_DATA_SHARING, api.getProcessPluginDefinition().getResourceVersion(),
+					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, errorMessage));
 			variables.updateTask(latestTask);
 		}
 	}

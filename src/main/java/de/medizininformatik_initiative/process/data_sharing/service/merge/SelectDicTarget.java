@@ -1,6 +1,5 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Endpoint;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Task;
@@ -55,8 +54,7 @@ public class SelectDicTarget implements ServiceTask
 	private String extractEndpointIdentifier(Endpoint endpoint)
 	{
 		return endpoint.getIdentifier().stream().filter(i -> NamingSystems.EndpointIdentifier.SID.equals(i.getSystem()))
-				.map(Identifier::getValue).findFirst()
-				.orElseThrow(() -> new RuntimeException("Endpoint with id '" + endpoint.getId()
-						+ "' is missing identifier with system '" + NamingSystems.EndpointIdentifier.SID + "'"));
+				.map(Identifier::getValue).findFirst().orElseThrow(() -> new RuntimeException(
+						"Endpoint '" + endpoint.getId() + "' does not contain any identifier"));
 	}
 }

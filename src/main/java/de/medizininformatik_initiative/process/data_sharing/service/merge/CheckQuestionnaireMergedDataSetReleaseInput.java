@@ -44,18 +44,19 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 			variables.updateTask(task);
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_URL, dataSetUrl);
 
-			logger.info("Released merged data-set for HRP and data-sharing project '{}' in Task '{}'",
-					projectIdentifier, task.getId());
+			logger.info("Released merged data-set to HRP for project-identifier '{}' in Task '{}'", projectIdentifier,
+					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 		}
 		else
 		{
 			String expectedIdentifier = getProjectIdentifier(questionnaireResponse);
 			logger.warn(
-					"Could not release merged data-set for HRP and data-sharing project '{}' referenced in Task with id '{}': expected and provided project identifier do not match (expected: {}, provided: {}) or merged data-set URL is not present",
-					projectIdentifier, task.getId(), expectedIdentifier, projectIdentifier.toLowerCase());
+					"Could not release merged data-set to HRP for project-identifier '{}' in Task '{}': expected and provided project-identifier do not match (expected: {}, provided: {}) or merged data-set URL is not present",
+					projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task), expectedIdentifier,
+					projectIdentifier.toLowerCase());
 
 			String error = "Release merged data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
-					+ " project identifier do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
+					+ " project-identifiers do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
 					+ expectedIdentifier + ") or merged data-set URL not present";
 			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR,
 					error);

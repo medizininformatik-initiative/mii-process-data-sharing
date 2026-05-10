@@ -35,16 +35,16 @@ public class CheckQuestionnaireDataSetReleaseInput implements ServiceTask
 
 		if (projectIdentifierMatch(questionnaireResponse, projectIdentifier))
 		{
-			logger.info("Released data-set for transfer to DMS '{}' and project-identifier '{}' for Task '{}'",
+			logger.info("Released data-set for transfer to DMS '{}' for project-identifier '{}' in Task '{}'",
 					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 		}
 		else
 		{
 			String expectedIdentifier = getProjectIdentifier(questionnaireResponse);
 			logger.warn(
-					"Could not release data-set for project-identifier '{}' to DMS '{}' for Task '{}': expected and provided project-identifier do not match (expected: {}, provided: {})",
-					projectIdentifier, dmsIdentifier, task.getId(), expectedIdentifier,
-					projectIdentifier.toLowerCase());
+					"Could not release data-set to DMS '{}' for project-identifier '{}' for Task '{}': expected and provided project-identifier do not match (expected: {}, provided: {})",
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
+					expectedIdentifier, projectIdentifier.toLowerCase());
 
 			String error = "Release data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ "project-identifiers do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"

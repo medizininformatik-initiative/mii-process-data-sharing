@@ -59,7 +59,8 @@ public class ValidateDataSetExecute implements ServiceTask
 			logger.warn(
 					"Could not validate data-set for DMS '{}' and project-identifier '{}' referenced in Task with id '{}'"
 							+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + "{}",
-					dmsIdentifier, projectIdentifier, task.getId(), exception.getMessage());
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
+					exception.getMessage());
 
 			String error = "Validating data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ exception.getMessage();

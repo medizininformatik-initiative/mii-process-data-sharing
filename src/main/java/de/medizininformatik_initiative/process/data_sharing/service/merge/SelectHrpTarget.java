@@ -2,7 +2,6 @@ package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
 import java.util.Objects;
 
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Identifier;
 
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
@@ -24,8 +23,8 @@ public class SelectHrpTarget implements ServiceTask
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
-		String hrp = getHrpIdentifier(api.getOrganizationProvider());
-		Target target = getHrpTarget(api.getEndpointProvider(), hrp, variables);
+		String hrpIdentifier = getHrpIdentifier(api.getOrganizationProvider());
+		Target target = getHrpTarget(api.getEndpointProvider(), hrpIdentifier, variables);
 
 		variables.setTarget(target);
 	}
@@ -34,10 +33,9 @@ public class SelectHrpTarget implements ServiceTask
 	{
 		return organizationProvider.getOrganizations(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_HRP))
-				.stream().flatMap(o -> o.getIdentifier().stream()).filter(Objects::nonNull).map(Identifier::getValue)
-				.findFirst().orElseThrow(() -> new RuntimeException("No organization with role HRP found"));
+				CodeSystems.OrganizationRole.hrp()).stream().flatMap(o -> o.getIdentifier().stream())
+				.filter(Objects::nonNull).map(Identifier::getValue).findFirst()
+				.orElseThrow(() -> new RuntimeException("No organization with role HRP found"));
 	}
 
 	private Target getHrpTarget(EndpointProvider endpointProvider, String organizationIdentifier, Variables variables)

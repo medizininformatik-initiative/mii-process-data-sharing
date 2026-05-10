@@ -3,7 +3,6 @@ package de.medizininformatik_initiative.process.data_sharing.service.merge;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.StringType;
@@ -52,10 +51,10 @@ public class PrepareMerging implements ServiceTask
 		variables.setTargets(targets);
 
 		logger.info(
-				"Starting data-set reception and merging of approved data sharing project [project-identifier: {}; contract-url: {}; researchers: {}; dic: {}; task-id: {}]",
-				projectIdentifier, contractUrl, String.join(",", researcherIdentifiers), targets.getEntries().stream()
-						.map(Target::getOrganizationIdentifierValue).collect(Collectors.joining(",")),
-				task.getId());
+				"Starting receive and merge of approved data-sharing project '{}' with contract-url '{}', researchers {} and DICs {} in Task '{}'",
+				projectIdentifier, contractUrl, researcherIdentifiers,
+				targets.getEntries().stream().map(Target::getOrganizationIdentifierValue).toList(),
+				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 	}
 
 	private String getProjectIdentifier(TaskHelper helper, Task task)
@@ -65,8 +64,8 @@ public class PrepareMerging implements ServiceTask
 						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER, Identifier.class)
 				.map(i -> (Identifier) i.getValue())
 				.filter(i -> ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER.equals(i.getSystem()))
-				.map(Identifier::getValue).map(String::trim).findFirst().orElseThrow(() -> new RuntimeException(
-						"No project-identifier present in task with id '" + task.getId() + "'"));
+				.map(Identifier::getValue).map(String::trim).findFirst()
+				.orElseThrow(() -> new RuntimeException("Task.input:project-identifier missing"));
 	}
 
 	private String getContractUrl(TaskHelper helper, Task task)
@@ -74,8 +73,7 @@ public class PrepareMerging implements ServiceTask
 		return helper
 				.getFirstInputParameterValue(task, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
 						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL, UrlType.class)
-				.map(UrlType::getValue).orElseThrow(
-						() -> new RuntimeException("No contract-url present in task with id '" + task.getId() + "'"));
+				.map(UrlType::getValue).orElseThrow(() -> new RuntimeException("Task.input:contract-url missing"));
 	}
 
 	private List<String> getResearcherIdentifiers(TaskHelper helper, Task task)

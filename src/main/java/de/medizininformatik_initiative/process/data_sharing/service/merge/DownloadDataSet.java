@@ -84,14 +84,6 @@ public class DownloadDataSet implements ServiceTask, InitializingBean
 		{
 			String message = "Download data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ exception.getMessage();
-			task.setStatus(Task.TaskStatus.FAILED);
-			task.addOutput(statusGenerator.createDataSetStatusOutput(
-					api.getProcessPluginDefinition().getResourceVersion(),
-					ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR,
-					ConstantsDataSharing.CODESYSTEM_DATA_SHARING, api.getProcessPluginDefinition().getResourceVersion(),
-					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, message));
-			variables.updateTask(task);
-
 			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR, message);
 		}
 	}

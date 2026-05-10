@@ -40,7 +40,7 @@ public class CommunicateMissingDataSetsCoordinate implements ServiceTask
 
 		logMissingDataSets(api, targets, startTask, projectIdentifier, dmsIdentifier);
 		if (hrpEmailEnabled)
-			sendMail(api, startTask, targets, projectIdentifier, dmsIdentifier);
+			sendMail(api, targets, startTask, projectIdentifier, dmsIdentifier);
 
 		addStartTaskOutputMissingDataSets(variables, targets);
 		updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
@@ -65,7 +65,7 @@ public class CommunicateMissingDataSetsCoordinate implements ServiceTask
 				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 	}
 
-	private void sendMail(ProcessPluginApi api, Task task, Targets targets, String projectIdentifier,
+	private void sendMail(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier,
 			String dmsIdentifier)
 	{
 		String subject = "Missing data-sets in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING

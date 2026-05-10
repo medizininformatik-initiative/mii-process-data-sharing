@@ -370,14 +370,14 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorMergeReceiveDownloadInsert handleErrorMergeReceiveDownloadInsert()
 	{
-		return new HandleErrorMergeReceiveDownloadInsert(dmsEmailEnabled);
+		return new HandleErrorMergeReceiveDownloadInsert(dataSetStatusGenerator(), dmsEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorMergeReceiveSendReceipt handleErrorMergeReceiveSendReceipt()
 	{
-		return new HandleErrorMergeReceiveSendReceipt(dmsEmailEnabled);
+		return new HandleErrorMergeReceiveSendReceipt(dataSetStatusGenerator(), dmsEmailEnabled);
 	}
 
 	@Bean
@@ -412,14 +412,14 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public HandleErrorMergeRelease handleErrorMergeRelease()
 	{
-		return new HandleErrorMergeRelease();
+		return new HandleErrorMergeRelease(dmsEmailEnabled);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public CommunicateMissingDataSetsMerge communicateMissingDataSetsMerge()
 	{
-		return new CommunicateMissingDataSetsMerge();
+		return new CommunicateMissingDataSetsMerge(dmsEmailEnabled);
 	}
 
 	@Bean

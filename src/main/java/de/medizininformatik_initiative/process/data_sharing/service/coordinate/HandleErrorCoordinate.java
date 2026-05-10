@@ -25,7 +25,6 @@ public class HandleErrorCoordinate implements ServiceTask
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		logger.warn("Recreating user-task 'release-consolidate-data-sets'");
-
 		if (hrpEmailEnabled)
 			sendMail(api, variables);
 

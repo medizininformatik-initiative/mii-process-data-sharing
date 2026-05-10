@@ -10,6 +10,7 @@ import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.service.EndpointProvider;
@@ -28,6 +29,7 @@ public class ReinsertTarget implements ServiceTask
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
+		Task startTask = variables.getStartTask();
 		Task latestTask = variables.getLatestTask();
 		String dicIdentifier = extractDicIdentifier(latestTask);
 		Endpoint dicEndpoint = getDicEndpoint(api.getEndpointProvider(), dicIdentifier);
@@ -37,16 +39,15 @@ public class ReinsertTarget implements ServiceTask
 				dicEndpoint.getAddress(), correlationKey);
 
 		logger.warn("Error during data-set receive" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
-				+ "reinserting target for organization '{}' with correlation-key '{}' and data-sharing project '{}' referenced in Task with id '{}'",
+				+ "reinserting target for organization '{}' with correlation-key '{}' and data-sharing project '{}' for Task '{}'",
 				reinsertTarget.getOrganizationIdentifierValue(), correlationKey,
 				variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER),
-				latestTask.getId());
+				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(latestTask));
 
 		variables.setTarget(reinsertTarget);
 
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, null);
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-				null);
+		updateLatestTaskIfNotStartTask(api, startTask, latestTask);
+
 		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_EXISTS,
 				false);
 	}
@@ -70,6 +71,15 @@ public class ReinsertTarget implements ServiceTask
 	private String extractCorrelationKey(TaskHelper helper, Task task)
 	{
 		return helper.getFirstInputParameterValue(task, CodeSystems.BpmnMessage.correlationKey(), StringType.class)
-				.orElseThrow(() -> new RuntimeException("CorrelationKey is missing")).getValue();
+				.orElseThrow(() -> new RuntimeException("Task.input:correlation-key missing")).getValue();
+	}
+
+	private void updateLatestTaskIfNotStartTask(ProcessPluginApi api, Task startTask, Task latestTask)
+	{
+		if (latestTask != null && startTask != latestTask)
+		{
+			api.getDsfClientProvider().getLocal().withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(latestTask);
+		}
 	}
 }

@@ -107,7 +107,8 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 
 			logger.info(
 					"Stored DocumentReference with id '{}' provided for DMS '{}' and project-identifier '{}' in Task '{}'",
-					transferDocumentReference.getId(), dmsIdentifier, projectIdentifier, task.getId());
+					transferDocumentReference.getId(), dmsIdentifier, projectIdentifier,
+					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 			if (dicEmailEnabled)
 				sendMail(api, task, projectIdentifier, dmsIdentifier, transferDocumentReference.getIdElement());
 		}
