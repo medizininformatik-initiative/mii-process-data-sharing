@@ -19,7 +19,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Endpoint;
 import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.ListResource;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -381,13 +380,6 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
 						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
 						+ "|" + organizationIdentifier + "'"));
-	}
-
-	private String getEndpointIdentifierValue(Endpoint endpoint)
-	{
-		return endpoint.getIdentifier().stream().filter(i -> NamingSystems.EndpointIdentifier.SID.equals(i.getSystem()))
-				.findFirst().map(Identifier::getValue).orElseThrow(() -> new RuntimeException(
-						"Endpoint '" + endpoint.getId() + "' does not contain any identifier"));
 	}
 
 	private void createAndSaveListEntryComponent(ProcessPluginApi api, ListResource transferBinaryReferenceList,

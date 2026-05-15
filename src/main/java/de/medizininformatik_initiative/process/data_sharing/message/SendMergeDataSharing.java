@@ -43,8 +43,8 @@ public class SendMergeDataSharing implements MessageSendTask
 
 		List<Task.ParameterComponent> otherInputs = List.of(projectIdentifierInput, contractUrlInput);
 
-		List<String> researcherIdentifiers = (variables
-				.getStringList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS));
+		List<String> researcherIdentifiers = variables
+				.getStringList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS);
 		List<Task.ParameterComponent> researcherIdentifierInputs = getResearcherIdentifierInputs(api,
 				researcherIdentifiers);
 

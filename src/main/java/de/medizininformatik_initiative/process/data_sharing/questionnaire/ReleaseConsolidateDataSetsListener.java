@@ -16,8 +16,6 @@ import dev.dsf.bpe.v2.variables.Target;
 import dev.dsf.bpe.v2.variables.Targets;
 import dev.dsf.bpe.v2.variables.Variables;
 
-;
-
 public class ReleaseConsolidateDataSetsListener extends DefaultUserTaskListener
 {
 	private final boolean hrpEmailEnabled;
