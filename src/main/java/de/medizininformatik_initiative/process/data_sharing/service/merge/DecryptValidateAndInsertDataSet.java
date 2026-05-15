@@ -110,7 +110,7 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 
 	private String getDicIdentifier(Variables variables)
 	{
-		return variables.getStartTask().getRequester().getIdentifier().getValue();
+		return variables.getLatestTask().getRequester().getIdentifier().getValue();
 	}
 
 	private ListResource decryptValidateAndInsertResources(ProcessPluginApi api, PrivateKey privateKey,
@@ -419,9 +419,9 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 
 	private void updateTask(DsfClient client, Task task, Variables variables)
 	{
-		client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
 				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
-		variables.updateTask(task);
+		variables.updateTask(response);
 	}
 
 	private String getMimeType(Resource resource)

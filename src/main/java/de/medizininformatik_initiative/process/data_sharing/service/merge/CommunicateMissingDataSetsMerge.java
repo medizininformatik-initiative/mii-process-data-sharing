@@ -91,8 +91,8 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 
 	private void updateTask(DsfClient client, Task task, Variables variables)
 	{
-		client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
 				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
-		variables.updateTask(task);
+		variables.updateTask(response);
 	}
 }

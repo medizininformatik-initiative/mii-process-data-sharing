@@ -64,28 +64,16 @@
           </bpmn:extensionElements>
         </bpmn:messageEventDefinition>
       </bpmn:endEvent>
-      <bpmn:exclusiveGateway id="Gateway_15yviei">
-        <bpmn:incoming>Flow_1acu89o</bpmn:incoming>
-        <bpmn:outgoing>Flow_17m7yxf</bpmn:outgoing>
-        <bpmn:outgoing>Flow_124altx</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="Flow_17m7yxf" sourceRef="Gateway_15yviei" targetRef="selectHrpTargetBeforeMerging">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!mergeReceiveDataSharingErrorExists}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
       <bpmn:serviceTask id="selectTargetDic" name="select target dic" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.merge.SelectDicTarget">
         <bpmn:incoming>Flow_14fb65n</bpmn:incoming>
         <bpmn:outgoing>Flow_1653fbj</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="Flow_1653fbj" sourceRef="selectTargetDic" targetRef="sendReceipt" />
-      <bpmn:sequenceFlow id="Flow_124altx" name="error&#10;occurred" sourceRef="Gateway_15yviei" targetRef="reinsertTarget">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mergeReceiveDataSharingErrorExists}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
       <bpmn:serviceTask id="reinsertTarget" name="reinsert target" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.merge.ReinsertTarget">
-        <bpmn:incoming>Flow_124altx</bpmn:incoming>
         <bpmn:incoming>Flow_074ctat</bpmn:incoming>
+        <bpmn:incoming>Flow_124altx</bpmn:incoming>
         <bpmn:outgoing>Flow_05emj7s</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:sequenceFlow id="Flow_1acu89o" sourceRef="sendReceipt" targetRef="Gateway_15yviei" />
       <bpmn:sendTask id="sendReceipt" name="send receipt" camunda:class="de.medizininformatik_initiative.process.data_sharing.message.SendReceipt">
         <bpmn:extensionElements>
           <camunda:field name="instantiatesCanonical">
@@ -130,6 +118,18 @@
         <bpmn:errorEventDefinition id="ErrorEventDefinition_12fbbgh" errorRef="Error_1me7w45" camunda:errorCodeVariable="mergeReceiveDataSharingError" camunda:errorMessageVariable="mergeReceiveDataSharingErrorMessage" />
       </bpmn:boundaryEvent>
       <bpmn:sequenceFlow id="Flow_187k43g" sourceRef="Event_1tzdyg7" targetRef="handleErrorMergeReceiveDownloadInsert" />
+      <bpmn:exclusiveGateway id="Gateway_15yviei">
+        <bpmn:incoming>Flow_1acu89o</bpmn:incoming>
+        <bpmn:outgoing>Flow_124altx</bpmn:outgoing>
+        <bpmn:outgoing>Flow_17m7yxf</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_124altx" name="error&#10;occurred" sourceRef="Gateway_15yviei" targetRef="reinsertTarget">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mergeReceiveDataSharingErrorExists}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_17m7yxf" sourceRef="Gateway_15yviei" targetRef="selectHrpTargetBeforeMerging">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!mergeReceiveDataSharingErrorExists}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_1acu89o" sourceRef="sendReceipt" targetRef="Gateway_15yviei" />
     </bpmn:subProcess>
     <bpmn:serviceTask id="communicateMissingDataSets" name="communicate missing data-sets" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.merge.CommunicateMissingDataSetsMerge">
       <bpmn:incoming>Flow_08cv4w6</bpmn:incoming>
@@ -231,7 +231,7 @@
   <bpmn:message id="Message_10o3b8y" name="sendDataSet" />
   <bpmn:message id="Message_0lnamjn" name="sendMergedDataSet" />
   <bpmn:message id="Message_13g61sd" name="receivedDataSet" />
-  <bpmn:error id="Error_1me7w45" name="mergeReceiveDataSharingError" />
+  <bpmn:error id="Error_1me7w45" name="mergeReceiveDataSharingError" errorCode="mergeReceiveDataSharingError" />
   <bpmn:error id="Error_0xv0ohi" name="mergeReleaseDataSharingError" errorCode="mergeReleaseDataSharingError" />
   <bpmn:message id="Message_1v890v8" name="consolidateDataSets" />
   <bpmn:error id="Error_1v8uo8w" name="dataReceiveError" errorCode="dataReceiveError" />
