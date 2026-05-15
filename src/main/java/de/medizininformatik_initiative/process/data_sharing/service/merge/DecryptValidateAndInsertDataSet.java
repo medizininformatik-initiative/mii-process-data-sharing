@@ -153,7 +153,7 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	{
 		String mimeType = getMimeType(item);
 		InputStream inputStream = decryptDataStream(api, item, privateKey);
-		validateDataStream(api, inputStream, mimeType);
+		inputStream = validateDataStream(api, inputStream, mimeType);
 		return insertDataStream(api, inputStream, mimeType);
 	}
 
@@ -202,12 +202,14 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 		}
 	}
 
-	private void validateDataStream(ProcessPluginApi api, InputStream inputStream, String mimeType)
+	private InputStream validateDataStream(ProcessPluginApi api, InputStream inputStream, String mimeType)
 	{
 		if (!inputStream.markSupported())
 			inputStream = new BufferedInputStream(inputStream);
 
 		api.getMimeTypeService().validateWithException(inputStream, mimeType);
+
+		return inputStream;
 	}
 
 	private void validateDataResource(ProcessPluginApi api, Binary binary)
