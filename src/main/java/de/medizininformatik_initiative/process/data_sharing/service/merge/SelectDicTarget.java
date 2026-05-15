@@ -1,5 +1,7 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
+import java.util.List;
+
 import org.hl7.fhir.r4.model.Endpoint;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Task;
@@ -11,6 +13,7 @@ import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.service.EndpointProvider;
 import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
 import dev.dsf.bpe.v2.variables.Variables;
 
 public class SelectDicTarget implements ServiceTask
@@ -25,9 +28,11 @@ public class SelectDicTarget implements ServiceTask
 		Task task = variables.getLatestTask();
 		Identifier dicIdentifier = getDicOrganizationIdentifier(task);
 		Endpoint dicEndpoint = getDicEndpoint(api.getEndpointProvider(), dicIdentifier);
-		Target dicTarget = createTarget(variables, dicIdentifier, dicEndpoint);
 
+		Target dicTarget = createTarget(variables, dicIdentifier, dicEndpoint);
 		variables.setTarget(dicTarget);
+
+		removeOrganizationFromTargets(dicIdentifier.getValue(), variables);
 	}
 
 	private Identifier getDicOrganizationIdentifier(Task task)
@@ -56,5 +61,14 @@ public class SelectDicTarget implements ServiceTask
 		return endpoint.getIdentifier().stream().filter(i -> NamingSystems.EndpointIdentifier.SID.equals(i.getSystem()))
 				.map(Identifier::getValue).findFirst().orElseThrow(() -> new RuntimeException(
 						"Endpoint '" + endpoint.getId() + "' does not contain any identifier"));
+	}
+
+	private void removeOrganizationFromTargets(String organizationIdentifier, Variables variables)
+	{
+		List<Target> targets = variables.getTargets().getEntries();
+		List<Target> targetsWithoutReceivedIdentifier = targets.stream()
+				.filter(t -> !organizationIdentifier.equals(t.getOrganizationIdentifierValue())).toList();
+		Targets newTargets = variables.createTargets(targetsWithoutReceivedIdentifier);
+		variables.setTargets(newTargets);
 	}
 }
