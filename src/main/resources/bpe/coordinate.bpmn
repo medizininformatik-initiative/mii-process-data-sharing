@@ -204,7 +204,7 @@
     <bpmn:sequenceFlow id="Flow_1pd65bl" sourceRef="closeDicDataExtractionPeriod" targetRef="Activity_0rh1hj0" />
     <bpmn:sequenceFlow id="Flow_09dddxh" sourceRef="Activity_0rh1hj0" targetRef="Gateway_0n4qktl" />
     <bpmn:sequenceFlow id="Flow_1bhvjgi" sourceRef="handleErrorCoordinate" targetRef="Activity_0cufu8w" />
-    <bpmn:serviceTask id="handleErrorCoordinate" name="handle error" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.execute.HandleErrorCoordinate">
+    <bpmn:serviceTask id="handleErrorCoordinate" name="handle error" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.coordinate.HandleErrorCoordinate">
       <bpmn:incoming>Flow_0f49a4o</bpmn:incoming>
       <bpmn:outgoing>Flow_1bhvjgi</bpmn:outgoing>
     </bpmn:serviceTask>
