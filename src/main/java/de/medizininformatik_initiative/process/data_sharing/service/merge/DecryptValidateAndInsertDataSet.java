@@ -54,12 +54,12 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	private final boolean dmseMailEnabled;
 
 	public DecryptValidateAndInsertDataSet(String fhirStoreId, KeyProvider keyProvider,
-			DataSetStatusGenerator statusGenerator, boolean dmseMailEnabled)
+			DataSetStatusGenerator statusGenerator, boolean dmsMailEnabled)
 	{
 		this.fhirStoreId = fhirStoreId;
 		this.keyProvider = keyProvider;
 		this.statusGenerator = statusGenerator;
-		this.dmseMailEnabled = dmseMailEnabled;
+		this.dmseMailEnabled = dmsMailEnabled;
 	}
 
 	@Override
@@ -97,8 +97,7 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 			if (dmseMailEnabled)
 				sendMail(api, latetTask, projectIdentifier, dicIdentifier, documentReferenceId);
 
-			addStartTaskOutputReceivedDataSet(variables, dicIdentifier,
-					api.getProcessPluginDefinition().getResourceVersion());
+			addStartTaskOutputReceivedDataSet(api, variables, dicIdentifier);
 			updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 		}
 		catch (Exception exception)
@@ -388,8 +387,8 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 				.setUrl(entry.getItem().getReferenceElement().getValue());
 	}
 
-	private void addStartTaskOutputReceivedDataSet(Variables variables, String organizationIdentifier,
-			String resourceVersion)
+	private void addStartTaskOutputReceivedDataSet(ProcessPluginApi api, Variables variables,
+			String organizationIdentifier)
 	{
 		Task task = variables.getStartTask();
 		task.addOutput()
@@ -397,7 +396,7 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 						.setIdentifier(NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setVersion(resourceVersion)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
 		variables.updateTask(task);
 	}

@@ -49,8 +49,7 @@ public class CommunicateReceivedDataSet implements ServiceTask
 		if (hrpEmailEnabled)
 			sendMail(api, latestTask, dmsIdentifier, organizationIdentifier, projectIdentifier);
 
-		addStartTaskOutputReceivedDataSet(variables, organizationIdentifier,
-				api.getProcessPluginDefinition().getResourceVersion());
+		addStartTaskOutputReceivedDataSet(api, variables, organizationIdentifier);
 		updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 
 		removeOrganizationFromTargets(organizationIdentifier, variables);
@@ -80,8 +79,8 @@ public class CommunicateReceivedDataSet implements ServiceTask
 		api.getMailService().send(subject, message);
 	}
 
-	private void addStartTaskOutputReceivedDataSet(Variables variables, String organizationIdentifier,
-			String resourceVersion)
+	private void addStartTaskOutputReceivedDataSet(ProcessPluginApi api, Variables variables,
+			String organizationIdentifier)
 	{
 		Task task = variables.getStartTask();
 		task.addOutput()
@@ -89,7 +88,7 @@ public class CommunicateReceivedDataSet implements ServiceTask
 						.setIdentifier(NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setVersion(resourceVersion)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
 		variables.updateTask(task);
 	}

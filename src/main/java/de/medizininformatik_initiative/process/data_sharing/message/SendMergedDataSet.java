@@ -34,6 +34,7 @@ public class SendMergedDataSet implements MessageSendTask
 
 		Task.ParameterComponent dataSetUrlInput = new Task.ParameterComponent();
 		dataSetUrlInput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL);
 		dataSetUrlInput.setValue(new UrlType().setValue(dataSetUrl));
 

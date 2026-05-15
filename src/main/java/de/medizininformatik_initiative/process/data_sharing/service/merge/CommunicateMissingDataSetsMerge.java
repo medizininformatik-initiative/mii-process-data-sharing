@@ -39,7 +39,7 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 		if (dmsEmailEnabled)
 			sendMail(api, targets, startTask, projectIdentifier);
 
-		addStartTaskOutputMissingDataSets(targets, variables);
+		addStartTaskOutputMissingDataSets(api, targets, variables);
 		updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 	}
 
@@ -70,14 +70,14 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 		api.getMailService().send(subject, message.toString());
 	}
 
-	private void addStartTaskOutputMissingDataSets(Targets targets, Variables variables)
+	private void addStartTaskOutputMissingDataSets(ProcessPluginApi api, Targets targets, Variables variables)
 	{
 		Task task = variables.getStartTask();
-		targets.getEntries().forEach(target -> output(task, target));
+		targets.getEntries().forEach(target -> output(api, task, target));
 		variables.updateTask(task);
 	}
 
-	private void output(Task task, Target target)
+	private void output(ProcessPluginApi api, Task task, Target target)
 	{
 		task.addOutput()
 				.setValue(new Reference()
@@ -85,6 +85,7 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 								NamingSystems.OrganizationIdentifier.withValue(target.getOrganizationIdentifierValue()))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_MISSING);
 	}
 

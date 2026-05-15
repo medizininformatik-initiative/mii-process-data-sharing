@@ -40,7 +40,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 		if (projectIdentifierMatch(questionnaireResponse, projectIdentifier) && dataSetUrlOptional.isPresent())
 		{
 			String dataSetUrl = dataSetUrlOptional.get();
-			storeDataSetUrlAsTaskOutput(task, dataSetUrl);
+			storeDataSetUrlAsTaskOutput(api, task, dataSetUrl);
 			variables.updateTask(task);
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SET_URL, dataSetUrl);
 
@@ -75,7 +75,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 				.filter(PrimitiveType::hasValue).map(PrimitiveType::getValue).findFirst();
 	}
 
-	private void storeDataSetUrlAsTaskOutput(Task startTask, String dataSetUrl)
+	private void storeDataSetUrlAsTaskOutput(ProcessPluginApi api, Task startTask, String dataSetUrl)
 	{
 		Optional<Task.TaskOutputComponent> output = startTask.getOutput().stream()
 				.filter(Task.TaskOutputComponent::hasType)
@@ -88,6 +88,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 		{
 			Task.TaskOutputComponent dataSetUrlOutput = new Task.TaskOutputComponent();
 			dataSetUrlOutput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+					.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 					.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL);
 			dataSetUrlOutput.setValue(new UrlType().setValue(dataSetUrl));
 			startTask.addOutput(dataSetUrlOutput);

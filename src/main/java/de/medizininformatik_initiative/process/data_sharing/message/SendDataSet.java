@@ -31,17 +31,15 @@ public class SendDataSet implements MessageSendTask
 	public List<ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api, Variables variables,
 			SendTaskValues sendTaskValues, Target target)
 	{
-		String version = api.getProcessPluginDefinition().getResourceVersion();
 		String documentReferenceId = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION);
 
 		ParameterComponent documentReferenceComponent = new ParameterComponent();
 		documentReferenceComponent.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setVersion(version)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DOCUMENT_REFERENCE_LOCATION);
 		documentReferenceComponent.setValue(
 				new Reference().setType(ResourceType.DocumentReference.name()).setReference(documentReferenceId));
-
 
 		return List.of(documentReferenceComponent);
 	}

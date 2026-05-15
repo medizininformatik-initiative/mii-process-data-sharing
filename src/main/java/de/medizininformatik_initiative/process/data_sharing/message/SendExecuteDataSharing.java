@@ -32,13 +32,13 @@ public class SendExecuteDataSharing implements MessageSendTask
 			SendTaskValues sendTaskValues, Target target)
 	{
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		Task.ParameterComponent dmsIdentifierInput = getDmsIdentifierInput(dmsIdentifier);
+		Task.ParameterComponent dmsIdentifierInput = getDmsIdentifierInput(api, dmsIdentifier);
 
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(projectIdentifier);
+		Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(api, projectIdentifier);
 
 		String contractUrl = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL);
-		Task.ParameterComponent contractUrlInput = getContractUrlInput(contractUrl);
+		Task.ParameterComponent contractUrlInput = getContractUrlInput(api, contractUrl);
 
 		return List.of(dmsIdentifierInput, projectIdentifierInput, contractUrlInput);
 	}
@@ -56,10 +56,11 @@ public class SendExecuteDataSharing implements MessageSendTask
 		return new MessageSendTaskErrorHandlerContinuingProcessWithTaskLog();
 	}
 
-	private Task.ParameterComponent getDmsIdentifierInput(String dmsIdentifier)
+	private Task.ParameterComponent getDmsIdentifierInput(ProcessPluginApi api, String dmsIdentifier)
 	{
 		Task.ParameterComponent input = new Task.ParameterComponent();
 		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DMS_IDENTIFIER);
 		input.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue(dmsIdentifier))
 				.setType(ResourceType.Organization.name()));
@@ -67,10 +68,11 @@ public class SendExecuteDataSharing implements MessageSendTask
 		return input;
 	}
 
-	private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
+	private Task.ParameterComponent getProjectIdentifierInput(ProcessPluginApi api, String projectIdentifier)
 	{
 		Task.ParameterComponent input = new Task.ParameterComponent();
 		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER);
 		input.setValue(new Identifier().setSystem(ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER)
 				.setValue(projectIdentifier));
@@ -78,10 +80,11 @@ public class SendExecuteDataSharing implements MessageSendTask
 		return input;
 	}
 
-	private Task.ParameterComponent getContractUrlInput(String contractUrl)
+	private Task.ParameterComponent getContractUrlInput(ProcessPluginApi api, String contractUrl)
 	{
 		Task.ParameterComponent input = new Task.ParameterComponent();
 		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL);
 		input.setValue(new UrlType(contractUrl));
 

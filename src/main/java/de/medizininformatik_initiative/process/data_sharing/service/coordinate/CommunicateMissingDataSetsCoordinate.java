@@ -42,7 +42,7 @@ public class CommunicateMissingDataSetsCoordinate implements ServiceTask
 		if (hrpEmailEnabled)
 			sendMail(api, targets, startTask, projectIdentifier, dmsIdentifier);
 
-		addStartTaskOutputMissingDataSets(variables, targets);
+		addStartTaskOutputMissingDataSets(api, variables, targets);
 		updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 
 		// needed for correlation to work when sending stop execute data sharing message
@@ -81,14 +81,14 @@ public class CommunicateMissingDataSetsCoordinate implements ServiceTask
 		api.getMailService().send(subject, message.toString());
 	}
 
-	private void addStartTaskOutputMissingDataSets(Variables variables, Targets targets)
+	private void addStartTaskOutputMissingDataSets(ProcessPluginApi api, Variables variables, Targets targets)
 	{
 		Task task = variables.getStartTask();
-		targets.getEntries().forEach(target -> output(task, target));
+		targets.getEntries().forEach(target -> output(api, task, target));
 		variables.updateTask(task);
 	}
 
-	private void output(Task task, Target target)
+	private void output(ProcessPluginApi api, Task task, Target target)
 	{
 		task.addOutput()
 				.setValue(new Reference()
@@ -96,6 +96,7 @@ public class CommunicateMissingDataSetsCoordinate implements ServiceTask
 								NamingSystems.OrganizationIdentifier.withValue(target.getOrganizationIdentifierValue()))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_MISSING);
 	}
 

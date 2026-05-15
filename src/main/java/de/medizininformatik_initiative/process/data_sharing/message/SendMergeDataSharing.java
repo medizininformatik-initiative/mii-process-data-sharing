@@ -36,19 +36,20 @@ public class SendMergeDataSharing implements MessageSendTask
 			SendTaskValues sendTaskValues, Target target)
 	{
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(projectIdentifier);
+		Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(api, projectIdentifier);
 
 		String contractUrl = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONTRACT_URL);
-		Task.ParameterComponent contractUrlInput = getContractUrlInput(contractUrl);
+		Task.ParameterComponent contractUrlInput = getContractUrlInput(api, contractUrl);
 
 		List<Task.ParameterComponent> otherInputs = List.of(projectIdentifierInput, contractUrlInput);
 
 		List<String> researcherIdentifiers = (variables
 				.getStringList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS));
-		List<Task.ParameterComponent> researcherIdentifierInputs = getResearcherIdentifierInputs(researcherIdentifiers);
+		List<Task.ParameterComponent> researcherIdentifierInputs = getResearcherIdentifierInputs(api,
+				researcherIdentifiers);
 
 		Targets targets = variables.getTargets();
-		List<Task.ParameterComponent> correlationKeyInputs = getCorrelationKeyInputs(targets);
+		List<Task.ParameterComponent> correlationKeyInputs = getCorrelationKeyInputs(api, targets);
 
 		return Stream.of(otherInputs, researcherIdentifierInputs, correlationKeyInputs).flatMap(Collection::stream)
 				.toList();
@@ -67,10 +68,11 @@ public class SendMergeDataSharing implements MessageSendTask
 		return new DefaultMessageSendTaskErrorHandler();
 	}
 
-	private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
+	private Task.ParameterComponent getProjectIdentifierInput(ProcessPluginApi api, String projectIdentifier)
 	{
 		Task.ParameterComponent projectIdentifierInput = new Task.ParameterComponent();
 		projectIdentifierInput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER);
 		projectIdentifierInput.setValue(new Identifier().setSystem(ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER)
 				.setValue(projectIdentifier));
@@ -78,25 +80,27 @@ public class SendMergeDataSharing implements MessageSendTask
 		return projectIdentifierInput;
 	}
 
-	private Task.ParameterComponent getContractUrlInput(String contractUrl)
+	private Task.ParameterComponent getContractUrlInput(ProcessPluginApi api, String contractUrl)
 	{
 		Task.ParameterComponent contractUrlInput = new Task.ParameterComponent();
 		contractUrlInput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_CONTRACT_URL);
 		contractUrlInput.setValue(new UrlType(contractUrl));
 
 		return contractUrlInput;
 	}
 
-	private List<Task.ParameterComponent> getResearcherIdentifierInputs(List<String> researchers)
+	private List<Task.ParameterComponent> getResearcherIdentifierInputs(ProcessPluginApi api, List<String> researchers)
 	{
-		return researchers.stream().map(this::transformToResearcherInput).toList();
+		return researchers.stream().map(r -> transformToResearcherInput(api, r)).toList();
 	}
 
-	private Task.ParameterComponent transformToResearcherInput(String researcherIdentifier)
+	private Task.ParameterComponent transformToResearcherInput(ProcessPluginApi api, String researcherIdentifier)
 	{
 		Task.ParameterComponent input = new Task.ParameterComponent();
 		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_RESEARCHER_IDENTIFIER);
 		input.setValue(new Identifier().setSystem(ConstantsDataSharing.NAMINGSYSTEM_RESEARCHER_IDENTIFIER)
 				.setValue(researcherIdentifier));
@@ -104,15 +108,16 @@ public class SendMergeDataSharing implements MessageSendTask
 		return input;
 	}
 
-	private List<Task.ParameterComponent> getCorrelationKeyInputs(Targets targets)
+	private List<Task.ParameterComponent> getCorrelationKeyInputs(ProcessPluginApi api, Targets targets)
 	{
-		return targets.getEntries().stream().map(this::transformToTargetInput).toList();
+		return targets.getEntries().stream().map(t -> transformToTargetInput(api, t)).toList();
 	}
 
-	private Task.ParameterComponent transformToTargetInput(Target target)
+	private Task.ParameterComponent transformToTargetInput(ProcessPluginApi api, Target target)
 	{
 		Task.ParameterComponent input = new Task.ParameterComponent();
 		input.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DIC_CORRELATION_KEY);
 		input.setValue(new StringType(target.getCorrelationKey()));
 

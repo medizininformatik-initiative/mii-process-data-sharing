@@ -22,7 +22,7 @@ public class ExtractMergedDataSetUrl implements ServiceTask
 		Task latestTask = variables.getLatestTask();
 
 		String dataSetUrl = extractDataSetUrl(latestTask);
-		Task.TaskOutputComponent dataSetUrlOutput = createDataSetUrlOutput(dataSetUrl);
+		Task.TaskOutputComponent dataSetUrlOutput = createDataSetUrlOutput(api, dataSetUrl);
 
 		startTask.addOutput(dataSetUrlOutput);
 		variables.updateTask(startTask);
@@ -39,10 +39,11 @@ public class ExtractMergedDataSetUrl implements ServiceTask
 				.orElseThrow(() -> new RuntimeException("Task.input:data-set-url missing"));
 	}
 
-	private Task.TaskOutputComponent createDataSetUrlOutput(String dataSetUrl)
+	private Task.TaskOutputComponent createDataSetUrlOutput(ProcessPluginApi api, String dataSetUrl)
 	{
 		Task.TaskOutputComponent dataSetUrlOutput = new Task.TaskOutputComponent();
 		dataSetUrlOutput.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_URL);
 		dataSetUrlOutput.setValue(new UrlType().setValue(dataSetUrl));
 
