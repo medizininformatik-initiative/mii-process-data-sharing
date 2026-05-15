@@ -65,7 +65,6 @@ public class TaskProfileTest
 				|| ResultSeverityEnum.FATAL.equals(m.getSeverity())).count());
 	}
 
-	// TODO: add output of received data sets
 	private Task createValidTaskCoordinateDataSharing()
 	{
 		Task task = new Task();
@@ -133,6 +132,12 @@ public class TaskProfileTest
 
 		task.addOutput()
 				.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC1"))
+						.setType(ResourceType.Organization.name()))
+				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(definition.getResourceVersion())
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
+		task.addOutput()
+				.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC2"))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setVersion(definition.getResourceVersion())
@@ -322,6 +327,12 @@ public class TaskProfileTest
 
 		task.addOutput()
 				.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC1"))
+						.setType(ResourceType.Organization.name()))
+				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(definition.getResourceVersion())
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
+		task.addOutput()
+				.setValue(new Reference().setIdentifier(NamingSystems.OrganizationIdentifier.withValue("Test_DIC2"))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
 				.setVersion(definition.getResourceVersion())

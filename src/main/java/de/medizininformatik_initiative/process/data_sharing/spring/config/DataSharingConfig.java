@@ -363,7 +363,8 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public DecryptValidateAndInsertDataSet decryptValidateAndInsertDataSet()
 	{
-		return new DecryptValidateAndInsertDataSet(fhirStoreIdDms, keyProviderDms(), dataSetStatusGenerator());
+		return new DecryptValidateAndInsertDataSet(fhirStoreIdDms, keyProviderDms(), dataSetStatusGenerator(),
+				dmsEmailEnabled);
 	}
 
 	@Bean

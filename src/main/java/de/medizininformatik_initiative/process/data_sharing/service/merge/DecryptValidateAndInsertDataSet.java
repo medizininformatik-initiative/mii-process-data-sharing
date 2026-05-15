@@ -18,6 +18,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ListResource;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.StringType;
@@ -50,13 +51,15 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	private final String fhirStoreId;
 	private final KeyProvider keyProvider;
 	private final DataSetStatusGenerator statusGenerator;
+	private final boolean dmseMailEnabled;
 
 	public DecryptValidateAndInsertDataSet(String fhirStoreId, KeyProvider keyProvider,
-			DataSetStatusGenerator statusGenerator)
+			DataSetStatusGenerator statusGenerator, boolean dmseMailEnabled)
 	{
 		this.fhirStoreId = fhirStoreId;
 		this.keyProvider = keyProvider;
 		this.statusGenerator = statusGenerator;
+		this.dmseMailEnabled = dmseMailEnabled;
 	}
 
 	@Override
@@ -69,28 +72,34 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
-		Task task = variables.getLatestTask();
+		Task startTask = variables.getStartTask();
+		Task latetTask = variables.getLatestTask();
 
 		List<Resource> encryptedResources = variables
 				.getFhirResourceList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES);
-		String sendingOrganizationIdentifier = getSendingOrganizationIdentifier(variables);
+		String dicIdentifier = getDicIdentifier(variables);
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
 		logger.info(
 				"Decrypting, validating and inserting data-set from organization '{}' and project-identifier '{}' in Task '{}'",
-				sendingOrganizationIdentifier, projectIdentifier,
-				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
+				dicIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(latetTask));
 
 		try
 		{
 			ListResource resourceReferencesList = decryptValidateAndInsertResources(api, keyProvider.getPrivateKey(),
 					encryptedResources);
-			IdType documentReferenceId = createOrUpdateDocumentReference(api, sendingOrganizationIdentifier,
-					projectIdentifier, resourceReferencesList, task).toUnqualified();
+			IdType documentReferenceId = createOrUpdateDocumentReference(api, dicIdentifier, projectIdentifier,
+					resourceReferencesList, latetTask).toUnqualified();
 
 			logger.info("Stored DocumentReference '{}' from organization '{}' and project-identifier '{}' in Task '{}'",
-					documentReferenceId, sendingOrganizationIdentifier, projectIdentifier,
-					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
+					documentReferenceId, dicIdentifier, projectIdentifier,
+					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(latetTask));
+			if (dmseMailEnabled)
+				sendMail(api, latetTask, projectIdentifier, dicIdentifier, documentReferenceId);
+
+			addStartTaskOutputReceivedDataSet(variables, dicIdentifier,
+					api.getProcessPluginDefinition().getResourceVersion());
+			updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 		}
 		catch (Exception exception)
 		{
@@ -100,7 +109,7 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 		}
 	}
 
-	private String getSendingOrganizationIdentifier(Variables variables)
+	private String getDicIdentifier(Variables variables)
 	{
 		return variables.getStartTask().getRequester().getIdentifier().getValue();
 	}
@@ -379,6 +388,43 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 				.setUrl(entry.getItem().getReferenceElement().getValue());
 	}
 
+	private void addStartTaskOutputReceivedDataSet(Variables variables, String organizationIdentifier,
+			String resourceVersion)
+	{
+		Task task = variables.getStartTask();
+		task.addOutput()
+				.setValue(new Reference()
+						.setIdentifier(NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier))
+						.setType(ResourceType.Organization.name()))
+				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(resourceVersion)
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
+		variables.updateTask(task);
+	}
+
+	private void sendMail(ProcessPluginApi api, Task task, String projectIdentifier, String dicIdentifier,
+			IdType documentReferenceId)
+	{
+		String subject = "Data-set successfully received in process '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
+		String message = "A data-set has been successfully downloaded and inserted in process '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' and Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' from organization '" + dicIdentifier
+				+ "' regarding project-identifier '" + projectIdentifier + "' with status code '"
+				+ ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_OK
+				+ "' and can be accessed using the following url:\n" + "- "
+				+ getDsfFhirServerAbsoluteId(api, documentReferenceId);
+
+		api.getMailService().send(subject, message);
+	}
+
+	private void updateTask(DsfClient client, Task task, Variables variables)
+	{
+		client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
+		variables.updateTask(task);
+	}
+
 	private String getMimeType(Resource resource)
 	{
 		if (resource instanceof Binary binary)
@@ -408,5 +454,11 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	{
 		return provider.getById(fhirStoreId)
 				.orElseThrow(() -> new RuntimeException("FHIR client '" + fhirStoreId + "' not configured"));
+	}
+
+	private String getDsfFhirServerAbsoluteId(ProcessPluginApi api, IdType idType)
+	{
+		return new IdType(api.getDsfClientProvider().getLocal().getBaseUrl(), idType.getResourceType(),
+				idType.getIdPart(), idType.getVersionIdPart()).getValue();
 	}
 }
