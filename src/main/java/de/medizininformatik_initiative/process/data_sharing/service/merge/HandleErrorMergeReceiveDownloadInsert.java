@@ -47,6 +47,8 @@ public class HandleErrorMergeReceiveDownloadInsert implements ServiceTask, Initi
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, null);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
 				null);
+		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_EXISTS,
+				true);
 	}
 
 	private void sendMail(ProcessPluginApi api, Variables variables, Task task, String error)

@@ -46,9 +46,16 @@ public class PrepareMerging implements ServiceTask
 		variables.setStringList(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS,
 				researcherIdentifiers);
 
+		// Used in SendInitializeNewProjectDataSharing
+		Target target = getTarget(api, variables);
+		variables.setTarget(target);
+
 		List<Target> targetsList = getTargets(api.getTaskHelper(), task, api.getEndpointProvider(), variables);
 		Targets targets = variables.createTargets(targetsList);
 		variables.setTargets(targets);
+
+		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_EXISTS,
+				false);
 
 		logger.info(
 				"Starting receive and merge of approved data-sharing project '{}' with contract-url '{}', researchers {} and DICs {} in Task '{}'",
@@ -84,6 +91,16 @@ public class PrepareMerging implements ServiceTask
 				.map(i -> (Identifier) i.getValue())
 				.filter(i -> ConstantsDataSharing.NAMINGSYSTEM_RESEARCHER_IDENTIFIER.equals(i.getSystem()))
 				.map(Identifier::getValue).collect(Collectors.toList());
+	}
+
+	private Target getTarget(ProcessPluginApi api, Variables variables)
+	{
+		String organizationIdentifierValue = api.getOrganizationProvider().getLocalOrganizationIdentifierValue()
+				.orElse("local");
+		String endpointIdentifierValue = api.getEndpointProvider().getLocalEndpointIdentifierValue().orElse("local");
+		String endpointAddress = api.getEndpointProvider().getLocalEndpointAddress();
+
+		return variables.createTarget(organizationIdentifierValue, endpointIdentifierValue, endpointAddress);
 	}
 
 	private List<Target> getTargets(TaskHelper helper, Task task, EndpointProvider endpointProvider,
