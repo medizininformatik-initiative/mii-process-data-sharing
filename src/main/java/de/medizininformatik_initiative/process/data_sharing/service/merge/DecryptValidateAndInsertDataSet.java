@@ -239,8 +239,9 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 		try
 		{
 			Resource resource = getResourceFromBytes(api, binary.getData(), binary.getContentType());
-			IdType id = getDsfClientForFhirStore(api.getDsfClientProvider(), fhirStoreId).create(resource)
-					.getIdElement();
+			DsfClient client = getDsfClientForFhirStore(api.getDsfClientProvider(), fhirStoreId);
+			IdType id = client.create(resource).getIdElement();
+			id.setIdBase(client.getBaseUrl());
 			return createListEntryComponent(id, binary.getContentType());
 		}
 		catch (Exception exception)
