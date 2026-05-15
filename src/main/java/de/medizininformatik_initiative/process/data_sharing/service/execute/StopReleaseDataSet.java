@@ -38,7 +38,7 @@ public class StopReleaseDataSet implements ServiceTask
 		Task latestTask = variables.getLatestTask();
 		Task startTask = variables.getStartTask();
 
-		// latestTask not updated automatically in error case
+		// latestTask not updated automatically in stop case
 		updateLatestTaskIfNotStartTask(api, startTask, latestTask);
 	}
 
