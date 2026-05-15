@@ -22,7 +22,7 @@ public class DataSharingProcessPluginDefinitionTest
 
 		var coordinate = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING);
 		assertNotNull(coordinate);
-		assertEquals(9, coordinate.stream().filter(this::exists).count());
+		assertEquals(10, coordinate.stream().filter(this::exists).count());
 
 		var execute = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING);
 		assertNotNull(execute);

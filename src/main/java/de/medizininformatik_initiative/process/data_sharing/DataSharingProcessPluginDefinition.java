@@ -81,7 +81,7 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 
 		return Map.of( //
 				ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING, //
-				List.of(aCoo, cDaSh, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
+				List.of(aCoo, cDaSh, eDaSeStEr, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING, //
 				List.of(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
 						vDaSh), //
