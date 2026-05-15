@@ -70,7 +70,7 @@ public class DataSharingConfig
 	private boolean hrpEmailEnabled;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_dataSend" }, description = "The ID of a DIC FHIR server from the main DSF configuration as 'DSF FHIR Client'", example = "dic-fhir-store")
+			"medizininformatik-initiativede_executeDataSharing" }, description = "The ID of a DIC FHIR server from the main DSF configuration as 'DSF FHIR Client'", example = "dic-fhir-store")
 	@Value("${de.medizininformatik.initiative.data.sharing.dic.fhir.server.id:#{null}}")
 	private String fhirStoreIdDic;
 

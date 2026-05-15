@@ -1,12 +1,15 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.variables.Variables;
 
 public class StopReleaseDataSet implements ServiceTask
@@ -31,5 +34,20 @@ public class StopReleaseDataSet implements ServiceTask
 				ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_RELEASE_DATA_SET_INITIAL_QUESTIONNAIRE_RESPONSE);
 		questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.STOPPED);
 		api.getDsfClientProvider().getLocal().update(questionnaireResponse);
+
+		Task latestTask = variables.getLatestTask();
+		Task startTask = variables.getStartTask();
+
+		// latestTask not updated automatically in error case
+		updateLatestTaskIfNotStartTask(api, startTask, latestTask);
+	}
+
+	private void updateLatestTaskIfNotStartTask(ProcessPluginApi api, Task startTask, Task latestTask)
+	{
+		if (latestTask != null && startTask != latestTask)
+		{
+			api.getDsfClientProvider().getLocal().withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(latestTask);
+		}
 	}
 }
