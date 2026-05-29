@@ -118,8 +118,7 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 
 			String error = "Encrypting and storing data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ exception.getMessage();
-			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT,
-					error);
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, error);
 		}
 	}
 

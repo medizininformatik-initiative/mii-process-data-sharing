@@ -58,8 +58,7 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 			String error = "Release merged data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ " project-identifiers do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
 					+ expectedIdentifier + ") or merged data-set URL not present";
-			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT,
-					error);
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, error);
 		}
 	}
 
