@@ -116,9 +116,10 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 			variables.setFhirResource(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES,
 					transferBinaryReferenceList);
 
+			String error = "Encrypting and storing data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+					+ exception.getMessage();
 			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT,
-					"Encrypting and storing data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
-							+ exception.getMessage());
+					error);
 		}
 	}
 

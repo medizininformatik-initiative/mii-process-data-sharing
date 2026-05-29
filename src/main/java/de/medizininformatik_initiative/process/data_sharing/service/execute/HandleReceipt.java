@@ -70,7 +70,7 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(startTask),
 					errorLog);
 
-			throw new ErrorBoundaryEvent(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR,
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT,
 					"Deliver encrypted data-set failed" + errorLog);
 		}
 	}

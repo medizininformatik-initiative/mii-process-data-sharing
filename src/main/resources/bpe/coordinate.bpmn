@@ -179,11 +179,11 @@
       <bpmn:incoming>Flow_1hw65h4</bpmn:incoming>
       <bpmn:outgoing>Flow_0tszb49</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:boundaryEvent id="coordinateSendConsolidateError" attachedToRef="Activity_0rh1hj0">
+    <bpmn:boundaryEvent id="coordinateSendConsolidateErrorNotAllowed" attachedToRef="Activity_0rh1hj0">
       <bpmn:outgoing>Flow_0f49a4o</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_1rb3lcm" errorRef="Error_0o0z568" camunda:errorCodeVariable="coordinateDataSharingError" camunda:errorMessageVariable="coordinateDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
-    <bpmn:sequenceFlow id="Flow_0f49a4o" sourceRef="coordinateSendConsolidateError" targetRef="handleErrorCoordinate" />
+    <bpmn:sequenceFlow id="Flow_0f49a4o" sourceRef="coordinateSendConsolidateErrorNotAllowed" targetRef="handleErrorCoordinate" />
     <bpmn:sendTask id="closeDicDataExtractionPeriod" name="close dic data-extraction period" camunda:class="de.medizininformatik_initiative.process.data_sharing.message.SendStopExecuteDataSharing">
       <bpmn:extensionElements>
         <camunda:field name="instantiatesCanonical">
@@ -206,23 +206,22 @@
     <bpmn:sequenceFlow id="Flow_1bhvjgi" sourceRef="handleErrorCoordinate" targetRef="Activity_0cufu8w" />
     <bpmn:serviceTask id="handleErrorCoordinate" name="handle error" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.coordinate.HandleErrorCoordinate">
       <bpmn:incoming>Flow_0f49a4o</bpmn:incoming>
+      <bpmn:incoming>Flow_0k291d9</bpmn:incoming>
       <bpmn:outgoing>Flow_1bhvjgi</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:textAnnotation id="TextAnnotation_1xrax0i">
-      <bpmn:text>All Error Boundery Event Code empty on purpose</bpmn:text>
-    </bpmn:textAnnotation>
+    <bpmn:boundaryEvent id="coordinateSendConsolidateErrorNotReachable" attachedToRef="Activity_0rh1hj0">
+      <bpmn:outgoing>Flow_0k291d9</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0pfsdsw" errorRef="Error_094z184" camunda:errorCodeVariable="coordinateDataSharingError" camunda:errorMessageVariable="coordinateDataSharingErrorMessage" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0k291d9" sourceRef="coordinateSendConsolidateErrorNotReachable" targetRef="handleErrorCoordinate" />
   </bpmn:process>
   <bpmn:message id="Message_2tdo6h2" name="coordinateDataSharing" />
   <bpmn:message id="Message_3lh87td" name="mergedDataSet" />
   <bpmn:message id="Message_3e5t313" name="receivedDataSet" />
-  <bpmn:error id="Error_094z184" name="consolidateDataSetsError" errorCode="consolidateDataSetsError" />
-  <bpmn:error id="Error_0o0z568" name="coordinateDataSharingError" />
+  <bpmn:error id="Error_094z184" name="coordinateDataSharingErrorNotAllowed" errorCode="not-allowed" />
+  <bpmn:error id="Error_0o0z568" name="coordinateDataSharingErrorNotAllowed" errorCode="not-allowed" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="medizininformatik-initiativede_coordinateDataSharing">
-      <bpmndi:BPMNShape id="TextAnnotation_1xrax0i_di" bpmnElement="TextAnnotation_1xrax0i">
-        <dc:Bounds x="2140" y="364" width="170" height="42" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1li0zxy_di" bpmnElement="coordinateDataSharingStartEvent">
         <dc:Bounds x="173" y="369" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -329,8 +328,11 @@
       <bpmndi:BPMNShape id="Activity_16evn0g_di" bpmnElement="handleErrorCoordinate">
         <dc:Bounds x="1810" y="320" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1qtoak9_di" bpmnElement="coordinateSendConsolidateError">
-        <dc:Bounds x="2292" y="296" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_1pbfzb5_di" bpmnElement="coordinateSendConsolidateErrorNotReachable">
+        <dc:Bounds x="2292" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1qtoak9_di" bpmnElement="coordinateSendConsolidateErrorNotAllowed">
+        <dc:Bounds x="2312" y="296" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_031nt59_di" bpmnElement="Flow_031nt59">
         <di:waypoint x="209" y="387" />
@@ -445,8 +447,8 @@
         <di:waypoint x="1325" y="583" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0f49a4o_di" bpmnElement="Flow_0f49a4o">
-        <di:waypoint x="2310" y="332" />
-        <di:waypoint x="2310" y="360" />
+        <di:waypoint x="2330" y="332" />
+        <di:waypoint x="2330" y="360" />
         <di:waypoint x="1910" y="360" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ixijre_di" bpmnElement="Flow_1ixijre">
@@ -465,6 +467,11 @@
         <di:waypoint x="1810" y="360" />
         <di:waypoint x="1560" y="360" />
         <di:waypoint x="1560" y="314" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0k291d9_di" bpmnElement="Flow_0k291d9">
+        <di:waypoint x="2310" y="318" />
+        <di:waypoint x="2310" y="360" />
+        <di:waypoint x="1910" y="360" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

@@ -96,12 +96,13 @@
     </bpmn:sendTask>
     <bpmn:boundaryEvent id="executeDataSharingSendError" attachedToRef="sendDataSet">
       <bpmn:outgoing>Flow_0q3cy4p</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0g01vrv" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0g01vrv" errorRef="Error_03kz9w1" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
     <bpmn:serviceTask id="deleteDataSetErrorSend" name="delete data-set" camunda:class="de.medizininformatik_initiative.process.data_sharing.service.execute.DeleteDataSet">
       <bpmn:incoming>Flow_01byg20</bpmn:incoming>
       <bpmn:incoming>Flow_0q3cy4p</bpmn:incoming>
       <bpmn:incoming>Flow_0o3tntz</bpmn:incoming>
+      <bpmn:incoming>Flow_1mit5p1</bpmn:incoming>
       <bpmn:outgoing>Flow_0wxdwg5</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:intermediateCatchEvent id="waitForRetrieval" name="wait&#10;(default PT45M)">
@@ -162,23 +163,22 @@
     <bpmn:sequenceFlow id="Flow_01byg20" sourceRef="executeDataSharingCreateError" targetRef="deleteDataSetErrorSend" />
     <bpmn:sequenceFlow id="Flow_0q3cy4p" sourceRef="executeDataSharingSendError" targetRef="deleteDataSetErrorSend" />
     <bpmn:sequenceFlow id="Flow_0o3tntz" sourceRef="executeDataSharingReceiptError" targetRef="deleteDataSetErrorSend" />
-    <bpmn:textAnnotation id="TextAnnotation_1xrax0i">
-      <bpmn:text>All Error Boundery Event Code empty on purpose</bpmn:text>
-    </bpmn:textAnnotation>
+    <bpmn:boundaryEvent id="Event_13apm5d" attachedToRef="sendDataSet">
+      <bpmn:outgoing>Flow_1mit5p1</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_15km716" errorRef="Error_0d3oxfy" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_1mit5p1" sourceRef="Event_13apm5d" targetRef="deleteDataSetErrorSend" />
   </bpmn:process>
   <bpmn:message id="Message_3j9kns3" name="executeDataSharing" />
   <bpmn:message id="Message_07oua04" name="sendDataSet" />
   <bpmn:message id="Message_0cl8lk6" name="sendDataSet" />
-  <bpmn:error id="Error_0q3eg9c" name="executeDataSharingError" />
+  <bpmn:error id="Error_0q3eg9c" name="executeDataSharingError" errorCode="not-sent" />
   <bpmn:message id="Message_1d74m7x" name="statusDataSet" />
-  <bpmn:error id="Error_03kz9w1" name="dataSendError" errorCode="dataSendError" />
+  <bpmn:error id="Error_03kz9w1" name="executeDataSharingErrorNotReachable" errorCode="not-reachable" />
   <bpmn:message id="Message_2qdupno" name="stopExecuteDataSharing" />
+  <bpmn:error id="Error_0d3oxfy" name="executeDataSharingErrorNotAllowed" errorCode="not-allowed" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="medizininformatik-initiativede_executeDataSharing">
-      <bpmndi:BPMNShape id="TextAnnotation_1xrax0i_di" bpmnElement="TextAnnotation_1xrax0i">
-        <dc:Bounds x="791" y="397" width="170" height="42" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1li0zxy_di" bpmnElement="executeDataSharingStartEvent">
         <dc:Bounds x="186" y="259" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -283,6 +283,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1rl4yb8_di" bpmnElement="executeDataSharingReadError">
         <dc:Bounds x="1262" y="299" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rgqib7_di" bpmnElement="Event_13apm5d">
+        <dc:Bounds x="1832" y="299" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_031nt59_di" bpmnElement="Flow_031nt59">
         <di:waypoint x="222" y="277" />
@@ -401,6 +404,11 @@
       <bpmndi:BPMNEdge id="Flow_0o3tntz_di" bpmnElement="Flow_0o3tntz">
         <di:waypoint x="2444" y="335" />
         <di:waypoint x="2444" y="390" />
+        <di:waypoint x="1590" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mit5p1_di" bpmnElement="Flow_1mit5p1">
+        <di:waypoint x="1850" y="335" />
+        <di:waypoint x="1850" y="390" />
         <di:waypoint x="1590" y="390" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

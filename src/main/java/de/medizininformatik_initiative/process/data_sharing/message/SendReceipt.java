@@ -13,14 +13,15 @@ import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
-import de.medizininformatik_initiative.processes.common.error.MessageSendTaskErrorHandlerWithTaskOutput;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
+
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.MessageSendTask;
 import dev.dsf.bpe.v2.activity.task.TaskSender;
 import dev.dsf.bpe.v2.activity.values.SendTaskValues;
 import dev.dsf.bpe.v2.error.MessageSendTaskErrorHandler;
+import dev.dsf.bpe.v2.error.impl.ExceptionToErrorBoundaryEventTranslationErrorHandler;
 import dev.dsf.bpe.v2.variables.Target;
 import dev.dsf.bpe.v2.variables.Variables;
 import jakarta.ws.rs.WebApplicationException;
@@ -97,26 +98,22 @@ public class SendReceipt implements MessageSendTask, InitializingBean
 	@Override
 	public MessageSendTaskErrorHandler getErrorHandler()
 	{
-		return new MessageSendTaskErrorHandlerWithTaskOutput(getOutputGenerator());
-	}
-
-	private Function<Exception, Task.TaskOutputComponent> getOutputGenerator()
-	{
-		return (exception) ->
+		Function<Exception, String> errorCodeTranslator = (exception) ->
 		{
-			String statusCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_REACHABLE;
+			String errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_REACHABLE;
 			if (exception instanceof WebApplicationException webApplicationException
 					&& webApplicationException.getResponse() != null
 					&& webApplicationException.getResponse().getStatus() == Response.Status.FORBIDDEN.getStatusCode())
 			{
-				statusCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
+				errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
 			}
 
-			return statusGenerator.createDataSetStatusOutput(api.getProcessPluginDefinition().getResourceVersion(),
-					statusCode, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-					api.getProcessPluginDefinition().getResourceVersion(),
-					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS,
-					"Send receipt failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage());
+			return errorCode;
 		};
+
+		Function<Exception, String> errorMessageTranslator = (exception) -> "Send receipt failed"
+				+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
+
+		return new ExceptionToErrorBoundaryEventTranslationErrorHandler(errorCodeTranslator, errorMessageTranslator);
 	}
 }
