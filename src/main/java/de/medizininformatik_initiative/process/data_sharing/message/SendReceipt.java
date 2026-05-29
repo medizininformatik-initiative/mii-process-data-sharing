@@ -9,6 +9,8 @@ import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
@@ -28,6 +30,8 @@ import jakarta.ws.rs.core.Response;
 
 public class SendReceipt implements MessageSendTask, InitializingBean
 {
+	private static final Logger logger = LoggerFactory.getLogger(SendReceipt.class);
+
 	private final ProcessPluginApi api;
 	private final DataSetStatusGenerator statusGenerator;
 
@@ -106,6 +110,9 @@ public class SendReceipt implements MessageSendTask, InitializingBean
 			{
 				errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
 			}
+
+			logger.error("Send receipt failed with error code '{}' - {} - throwing error boundary event", errorCode,
+					exception.getMessage());
 
 			return errorCode;
 		};

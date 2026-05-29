@@ -84,7 +84,8 @@ public class SendReceivedDataSet implements MessageEndEvent, InitializingBean
 			return statusGenerator.createDataSetStatusOutput(api.getProcessPluginDefinition().getResourceVersion(),
 					statusCode, ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
 					api.getProcessPluginDefinition().getResourceVersion(),
-					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS, "Send receivedDataSet failed");
+					ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS,
+					"Send received data-set failed");
 		};
 	}
 }

@@ -6,6 +6,8 @@ import java.util.function.Function;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task.ParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
@@ -23,6 +25,8 @@ import jakarta.ws.rs.core.Response;
 
 public class SendDataSet implements MessageSendTask
 {
+	private static final Logger logger = LoggerFactory.getLogger(SendDataSet.class);
+
 	public SendDataSet()
 	{
 	}
@@ -64,10 +68,12 @@ public class SendDataSet implements MessageSendTask
 				errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
 			}
 
+			logger.error("Send data-set failed with error code '{}' - {} - throwing error boundary event", errorCode,
+					exception.getMessage());
 			return errorCode;
 		};
 
-		Function<Exception, String> errorMessageTranslator = (exception) -> "Send dataSet failed"
+		Function<Exception, String> errorMessageTranslator = (exception) -> "Send data-set failed"
 				+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
 
 		return new ExceptionToErrorBoundaryEventTranslationErrorHandler(errorCodeTranslator, errorMessageTranslator);

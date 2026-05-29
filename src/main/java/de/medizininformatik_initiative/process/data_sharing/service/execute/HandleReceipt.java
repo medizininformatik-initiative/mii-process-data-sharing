@@ -65,13 +65,14 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 		}
 		else
 		{
-			String errorLog = error.isBlank() ? "" : ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + error;
-			logger.warn("Could not deliver encrypted data-set for DMS '{}' and project-identifier '{}' in Task '{}'{}",
-					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(startTask),
-					errorLog);
+			logger.error(
+					"Delivering encrypted data-set for DMS '{}' and project-identifier '{}' has status code '{}' in Task '{}' - {} - throwing error boundary event",
+					dmsIdentifier, projectIdentifier, statusCode,
+					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(startTask), error);
 
+			String message = ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + error;
 			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT,
-					"Deliver encrypted data-set failed" + errorLog);
+					"Deliver encrypted data-set failed" + message);
 		}
 	}
 
@@ -101,7 +102,7 @@ public class HandleReceipt implements ServiceTask, InitializingBean
 
 	private String getDataSetStatusError(Task.ParameterComponent input)
 	{
-		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : "";
+		return input.hasExtension() ? input.getExtensionFirstRep().getValueAsPrimitive().getValueAsString() : null;
 	}
 
 	private void transformInputToOutput(Task startTask, Task latestTask, String resourceVersion)

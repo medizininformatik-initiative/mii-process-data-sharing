@@ -2,6 +2,9 @@ package de.medizininformatik_initiative.process.data_sharing.message;
 
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
@@ -16,6 +19,8 @@ import jakarta.ws.rs.core.Response;
 
 public class SendConsolidateDataSets implements MessageSendTask
 {
+	private static final Logger logger = LoggerFactory.getLogger(SendConsolidateDataSets.class);
+
 	public SendConsolidateDataSets()
 	{
 	}
@@ -40,10 +45,12 @@ public class SendConsolidateDataSets implements MessageSendTask
 				errorCode = ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_ALLOWED;
 			}
 
+			logger.error("Send consolidate data-sets failed with error code '{}' - {} - throwing error boundary event",
+					errorCode, exception.getMessage());
 			return errorCode;
 		};
 
-		Function<Exception, String> errorMessageTranslator = (exception) -> "Send consolidateDataSets failed"
+		Function<Exception, String> errorMessageTranslator = (exception) -> "Send consolidate data-sets failed"
 				+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
 
 		return new ExceptionToErrorBoundaryEventTranslationErrorHandler(errorCodeTranslator, errorMessageTranslator);

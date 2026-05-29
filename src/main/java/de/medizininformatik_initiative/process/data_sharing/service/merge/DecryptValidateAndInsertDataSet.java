@@ -102,6 +102,11 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 		}
 		catch (Exception exception)
 		{
+			logger.error(
+					"Decrypting, validating and inserting data-set from organization '{}' and project-identifier '{}' in Task '{}' failed - {} - throwing error boundary event",
+					dicIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(latetTask),
+					exception.getMessage());
+
 			String message = "Decrypt, validate or insert data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ exception.getMessage();
 			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR, message);

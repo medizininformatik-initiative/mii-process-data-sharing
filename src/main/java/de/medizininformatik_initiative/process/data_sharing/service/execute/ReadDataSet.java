@@ -66,8 +66,13 @@ public class ReadDataSet implements ServiceTask
 		}
 		catch (Exception exception)
 		{
-			String error = "Reading data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
-			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, error);
+			logger.error(
+					"Reading data-set for DMS '{}' and project-identifier '{}' in Task '{}' failed - {} - throwing error boundary event",
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
+					exception.getMessage());
+
+			String message = "Read data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + exception.getMessage();
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, message);
 		}
 	}
 

@@ -41,15 +41,15 @@ public class CheckQuestionnaireDataSetReleaseInput implements ServiceTask
 		else
 		{
 			String expectedIdentifier = getProjectIdentifier(questionnaireResponse);
-			logger.warn(
-					"Could not release data-set to DMS '{}' for project-identifier '{}' for Task '{}': expected and provided project-identifier do not match (expected: {}, provided: {})",
+			logger.error(
+					"Release data-set to DMS '{}' for project-identifier '{}' for Task '{}' failed - expected and provided project-identifier do not match (expected: {}, provided: {}) - throwing error boundary event",
 					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
 					expectedIdentifier, projectIdentifier.toLowerCase());
 
-			String error = "Release data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+			String message = "Release data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ "project-identifiers do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
 					+ expectedIdentifier + ")";
-			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, error);
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, message);
 		}
 	}
 

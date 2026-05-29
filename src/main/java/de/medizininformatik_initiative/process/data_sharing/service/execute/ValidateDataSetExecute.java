@@ -56,15 +56,14 @@ public class ValidateDataSetExecute implements ServiceTask
 		}
 		catch (Exception exception)
 		{
-			logger.warn(
-					"Could not validate data-set for DMS '{}' and project-identifier '{}' referenced in Task with id '{}'"
-							+ ConstantsBase.EXCEPTION_MESSAGE_DIVIDER + "{}",
+			logger.error(
+					"Validating data-set for DMS '{}' and project-identifier '{}' in Task '{}' failed - {} - throwing error boundary event",
 					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
 					exception.getMessage());
 
-			String error = "Validating data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+			String message = "Validate data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
 					+ exception.getMessage();
-			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, error);
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, message);
 		}
 	}
 
