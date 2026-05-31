@@ -51,6 +51,7 @@ import de.medizininformatik_initiative.process.data_sharing.service.merge.Prepar
 import de.medizininformatik_initiative.process.data_sharing.service.merge.ReinsertTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.SelectDicTarget;
 import de.medizininformatik_initiative.process.data_sharing.service.merge.SelectHrpTarget;
+import de.medizininformatik_initiative.processes.common.crypto.CryptoService;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
 import dev.dsf.bpe.v2.ProcessPluginApi;
@@ -110,14 +111,14 @@ public class DataSharingConfig
 	private boolean dmsEmailEnabled;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS private-key as 4096 Bit RSA PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key.pem")
-	@Value("${de.medizininformatik.initiative.dms.private.key:#{null}}")
-	private String dmsPrivateKeyFile;
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS private-key as x25519 EC PEM encoded, not encrypted file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_private_key_x25519.pem")
+	@Value("${de.medizininformatik.initiative.dms.private.key.x25519:#{null}}")
+	private String dmsPrivateKeyFileX25519;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS public-key as 4096 Bit RSA PEM encoded file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_public_key.pem")
-	@Value("${de.medizininformatik.initiative.dms.public.key:#{null}}")
-	private String dmsPublicKeyFile;
+			"medizininformatik-initiativede_mergeDataSharing" }, description = "Location of the DMS public-key as x25519 EC PEM encoded file", recommendation = "Use docker secret file to configure", example = "/run/secrets/dms_public_key_x25519.pem")
+	@Value("${de.medizininformatik.initiative.dms.public.key.x25519:#{null}}")
+	private String dmsPublicKeyFileX25519;
 
 	// all Processes
 
@@ -125,14 +126,21 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public KeyProvider keyProviderDic()
 	{
-		return KeyProvider.from(api);
+		return KeyProvider.forX25519From(api);
 	}
 
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public KeyProvider keyProviderDms()
 	{
-		return KeyProvider.from(api, dmsPrivateKeyFile, dmsPublicKeyFile);
+		return KeyProvider.forX25519From(api, dmsPrivateKeyFileX25519, dmsPublicKeyFileX25519);
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+	public CryptoService cryptoService()
+	{
+		return CryptoService.x25519();
 	}
 
 	@Bean
@@ -312,7 +320,7 @@ public class DataSharingConfig
 	public EncryptAndStoreDataSet encryptAndStoreDataSet()
 	{
 		return new EncryptAndStoreDataSet(fhirStoreIdDic, fhirBinaryStreamReadUseHapiBlobStorageOperation,
-				dataSetStatusGenerator(), keyProviderDic(), dicEmailEnabled);
+				dataSetStatusGenerator(), cryptoService(), keyProviderDic(), dicEmailEnabled);
 	}
 
 	@Bean
@@ -363,8 +371,8 @@ public class DataSharingConfig
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public DecryptValidateAndInsertDataSet decryptValidateAndInsertDataSet()
 	{
-		return new DecryptValidateAndInsertDataSet(fhirStoreIdDms, keyProviderDms(), dataSetStatusGenerator(),
-				dmsEmailEnabled);
+		return new DecryptValidateAndInsertDataSet(fhirStoreIdDms, cryptoService(), keyProviderDms(),
+				dataSetStatusGenerator(), dmsEmailEnabled);
 	}
 
 	@Bean

@@ -29,6 +29,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
+import de.medizininformatik_initiative.processes.common.crypto.CryptoService;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
@@ -49,14 +50,16 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	private static final Logger logger = LoggerFactory.getLogger(DecryptValidateAndInsertDataSet.class);
 
 	private final String fhirStoreId;
+	private final CryptoService cryptoService;
 	private final KeyProvider keyProvider;
 	private final DataSetStatusGenerator statusGenerator;
 	private final boolean dmseMailEnabled;
 
-	public DecryptValidateAndInsertDataSet(String fhirStoreId, KeyProvider keyProvider,
+	public DecryptValidateAndInsertDataSet(String fhirStoreId, CryptoService cryptoService, KeyProvider keyProvider,
 			DataSetStatusGenerator statusGenerator, boolean dmsMailEnabled)
 	{
 		this.fhirStoreId = fhirStoreId;
+		this.cryptoService = cryptoService;
 		this.keyProvider = keyProvider;
 		this.statusGenerator = statusGenerator;
 		this.dmseMailEnabled = dmsMailEnabled;
@@ -65,6 +68,7 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	@Override
 	public void afterPropertiesSet() throws Exception
 	{
+		Objects.requireNonNull(cryptoService, "cryptoService");
 		Objects.requireNonNull(keyProvider, "keyProvider");
 		Objects.requireNonNull(statusGenerator, "statusGenerator");
 	}
