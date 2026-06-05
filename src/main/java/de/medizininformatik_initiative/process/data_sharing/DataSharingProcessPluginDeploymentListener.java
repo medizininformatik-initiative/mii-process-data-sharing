@@ -48,7 +48,8 @@ public class DataSharingProcessPluginDeploymentListener implements ProcessPlugin
 
 			Objects.requireNonNull(keyProvider.getPublicKey(), "PublicKey");
 			Objects.requireNonNull(keyProvider.getPrivateKey(), "PrivateKey");
-			keyProvider.createPublicKeyIfNotExists();
+			keyProvider.createPublicKeyIfNotExists(
+					ConstantsBase.NAMINGSYSTEM_MII_RECEIVER_KEY_ID_VALUE_DEFAULT_KEY_X25519);
 		}
 	}
 

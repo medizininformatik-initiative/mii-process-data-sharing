@@ -34,6 +34,7 @@ public class PrepareMerging implements ServiceTask
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
+		// TODO create public key per project-id and delete at the end of process execution
 		Task task = variables.getStartTask();
 
 		String projectIdentifier = getProjectIdentifier(api.getTaskHelper(), task);

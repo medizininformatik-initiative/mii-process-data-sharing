@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import de.hsheilbronn.mi.utils.crypto.hpke.ReceiverPrivateKeyProvider;
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.crypto.CryptoService;
 import de.medizininformatik_initiative.processes.common.crypto.KeyProvider;
@@ -186,7 +187,8 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 							DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN))
 					.readBinary(url.getIdPart(), MediaType.valueOf(MediaType.APPLICATION_OCTET_STREAM));
 
-			return api.getCryptoService().createRsaKem().decrypt(inputStream, privateKey);
+			ReceiverPrivateKeyProvider privateKeyProvider = _ -> privateKey;
+			return cryptoService.decrypt(inputStream, privateKeyProvider);
 		}
 		catch (Exception exception)
 		{
@@ -199,7 +201,8 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	{
 		try
 		{
-			byte[] decrypted = api.getCryptoService().createRsaKem().decrypt(binary.getData(), privateKey);
+			ReceiverPrivateKeyProvider privateKeyProvider = _ -> privateKey;
+			byte[] decrypted = cryptoService.decrypt(binary.getData(), privateKeyProvider);
 
 			String mimeType = getMimeType(binary);
 			return new Binary().setData(decrypted).setContentType(mimeType);

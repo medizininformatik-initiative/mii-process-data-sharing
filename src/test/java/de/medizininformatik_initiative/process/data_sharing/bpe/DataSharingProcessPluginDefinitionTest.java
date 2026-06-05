@@ -26,11 +26,11 @@ public class DataSharingProcessPluginDefinitionTest
 
 		var execute = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING);
 		assertNotNull(execute);
-		assertEquals(11, execute.stream().filter(this::exists).count());
+		assertEquals(12, execute.stream().filter(this::exists).count());
 
 		var merge = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING);
 		assertNotNull(merge);
-		assertEquals(14, merge.stream().filter(this::exists).count());
+		assertEquals(13, merge.stream().filter(this::exists).count());
 	}
 
 	private boolean exists(String file)

@@ -49,12 +49,12 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 		var aExe = "fhir/ActivityDefinition/data-sharing-execute.xml";
 		var aMer = "fhir/ActivityDefinition/data-sharing-merge.xml";
 
-		var cCrypto = "fhir/CodeSystem/mii-cryptography.xml";
 		var cDaSeSt = "fhir/CodeSystem/mii-data-set-status.xml";
 		var cDaSh = "fhir/CodeSystem/data-sharing.xml";
 
 		var eDaSeStEr = "fhir/StructureDefinition/extension-data-set-status-error.xml";
 
+		var nReKeId = "fhir/NamingSystem/mii-receiver-key-id.xml";
 		var nPrId = "fhir/NamingSystem/mii-project-identifier.xml";
 
 		var qReCon = "fhir/Questionnaire/questionnaire-release-consolidate-data-sets.xml";
@@ -74,7 +74,6 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 
 		var tCoo = "fhir/Task/task-coordinate-data-sharing.xml";
 
-		var vCrypto = "fhir/ValueSet/mii-cryptography.xml";
 		var vDaSeStRe = "fhir/ValueSet/mii-data-set-status-receive.xml";
 		var vDaSeStSe = "fhir/ValueSet/mii-data-set-status-send.xml";
 		var vDaSh = "fhir/ValueSet/data-sharing.xml";
@@ -83,10 +82,10 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 				ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING, //
 				List.of(aCoo, cDaSh, eDaSeStEr, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING, //
-				List.of(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
+				List.of(aExe, cDaSeSt, cDaSh, eDaSeStEr, nReKeId, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
 						vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING, //
-				List.of(aMer, cDaSeSt, cCrypto, cDaSh, eDaSeStEr, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
-						vCrypto, vDaSeStRe, vDaSh));
+				List.of(aMer, cDaSeSt, cDaSh, eDaSeStEr, nReKeId, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
+						vDaSeStRe, vDaSh));
 	}
 }

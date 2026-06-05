@@ -46,9 +46,9 @@ public class TaskProfileTest
 					"task-status-data-set.xml", "task-merged-data-set.xml", "task-received-data-set.xml",
 					"task-stop-execute-data-sharing.xml"),
 			List.of("dsf-read-access-tag-2.0.0.xml", "dsf-bpmn-message-2.0.0.xml", "data-sharing.xml",
-					"mii-cryptography.xml", "mii-data-set-status.xml"),
+					"mii-data-set-status.xml"),
 			List.of("dsf-read-access-tag-2.0.0.xml", "dsf-bpmn-message-2.0.0.xml", "data-sharing.xml",
-					"mii-cryptography.xml", "mii-data-set-status-receive.xml", "mii-data-set-status-send.xml"));
+					"mii-data-set-status-receive.xml", "mii-data-set-status-send.xml"));
 
 	private final ResourceValidator resourceValidator = new ResourceValidatorImpl(validationRule.getFhirContext(),
 			validationRule.getValidationSupport());
