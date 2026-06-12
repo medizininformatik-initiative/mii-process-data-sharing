@@ -34,7 +34,6 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task startTask = variables.getStartTask();
-		Task latesTask = variables.getLatestTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		Targets targets = variables.getTargets();
 
@@ -44,9 +43,6 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 
 		addStartTaskOutputMissingDataSets(api, targets, variables);
 		updateStartTask(api.getDsfClientProvider().getLocal(), startTask, variables);
-
-		// latestTask not updated automatically in consolidate case
-		updateLatestTaskIfNotStartTask(api.getDsfClientProvider().getLocal(), startTask, latesTask);
 	}
 
 	private void logMissingDataSets(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier)
@@ -104,14 +100,5 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
 				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
 		variables.updateTask(response);
-	}
-
-	private void updateLatestTaskIfNotStartTask(DsfClient client, Task startTask, Task latestTask)
-	{
-		if (latestTask != null && startTask != latestTask)
-		{
-			client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(latestTask);
-		}
 	}
 }
