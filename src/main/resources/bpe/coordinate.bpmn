@@ -218,7 +218,7 @@
   <bpmn:message id="Message_2tdo6h2" name="coordinateDataSharing" />
   <bpmn:message id="Message_3lh87td" name="mergedDataSet" />
   <bpmn:message id="Message_3e5t313" name="receivedDataSet" />
-  <bpmn:error id="Error_094z184" name="coordinateDataSharingErrorNotAllowed" errorCode="not-allowed" />
+  <bpmn:error id="Error_094z184" name="coordinateDataSharingErrorNotAllowed" errorCode="not-reachable" />
   <bpmn:error id="Error_0o0z568" name="coordinateDataSharingErrorNotAllowed" errorCode="not-allowed" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="medizininformatik-initiativede_coordinateDataSharing">

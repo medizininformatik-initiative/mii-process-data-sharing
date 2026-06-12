@@ -53,10 +53,10 @@ public class CheckQuestionnaireMergedDataSetReleaseInput implements ServiceTask
 			logger.warn(
 					"Release merged data-set to HRP for project-identifier '{}' in Task '{}' failed - expected and provided project-identifier do not match (expected: {}, provided: {}) or merged data-set URL is not present - throwing error boundary event",
 					projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task), expectedIdentifier,
-					projectIdentifier.toLowerCase());
+					projectIdentifier);
 
 			String message = "Release merged data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
-					+ " project-identifiers do not match (expected: " + projectIdentifier.toLowerCase() + ", provided:"
+					+ "project-identifiers do not match (expected: " + projectIdentifier + ", provided:"
 					+ expectedIdentifier + ") or merged data-set URL not present";
 			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, message);
 		}

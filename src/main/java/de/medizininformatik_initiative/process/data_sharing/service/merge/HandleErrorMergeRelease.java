@@ -25,26 +25,30 @@ public class HandleErrorMergeRelease implements ServiceTask
 	{
 		Task startTask = variables.getStartTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String error = variables
+		String errorCode = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR);
+		String errorMessage = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE);
 
 		logger.warn("Recreating user-task 'release-merged-data-set'");
 		if (dmsEmailEnabled)
-			sendMail(api, startTask, projectIdentifier, error);
+			sendMail(api, startTask, projectIdentifier, errorCode, errorMessage);
 
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR, null);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE,
 				null);
 	}
 
-	private void sendMail(ProcessPluginApi api, Task task, String projectIdentifier, String error)
+	private void sendMail(ProcessPluginApi api, Task task, String projectIdentifier, String errorCode,
+			String errorMessage)
 	{
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
 		String message = "Could not merge data-sets in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' and Task '"
 				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' requested from organization '"
-				+ task.getRequester().getIdentifier().getValue() + "' for project-identifier '" + projectIdentifier
-				+ "'.\n\nError:\n" + (error == null ? "unknown" : error) + "\n\n"
+				+ task.getRequester().getIdentifier().getValue() + "' regarding project-identifier '"
+				+ projectIdentifier + "':\n" + "- status code: " + errorCode + "\n" + "- error: "
+				+ (errorMessage == null ? "unknown" : errorMessage) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-merged-data-set'.";
 
 		api.getMailService().send(subject, message);

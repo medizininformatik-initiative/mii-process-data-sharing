@@ -1,5 +1,7 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
+import java.util.List;
+
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
@@ -32,6 +34,7 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task startTask = variables.getStartTask();
+		Task latesTask = variables.getLatestTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		Targets targets = variables.getTargets();
 
@@ -40,7 +43,10 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 			sendMail(api, targets, startTask, projectIdentifier);
 
 		addStartTaskOutputMissingDataSets(api, targets, variables);
-		updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
+		updateStartTask(api.getDsfClientProvider().getLocal(), startTask, variables);
+
+		// latestTask not updated automatically in consolidate case
+		updateLatestTaskIfNotStartTask(api.getDsfClientProvider().getLocal(), startTask, latesTask);
 	}
 
 	private void logMissingDataSets(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier)
@@ -57,17 +63,21 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 
 	private void sendMail(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier)
 	{
-		String subject = "Missing data-sets in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
-				+ "'";
-		StringBuilder message = new StringBuilder("Data-sets are missing in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
-				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' regarding project-identifier '"
-				+ projectIdentifier + "' from the following organizations:\n");
+		List<Target> missing = targets.getEntries();
+		if (!missing.isEmpty())
+		{
+			String subject = "Missing data-sets in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
+			StringBuilder message = new StringBuilder("Data-sets are missing in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+					+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' regarding project-identifier '"
+					+ projectIdentifier + "' from the following organizations:\n");
 
-		for (Target target : targets.getEntries())
-			message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
+			for (Target target : missing)
+				message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
 
-		api.getMailService().send(subject, message.toString());
+			api.getMailService().send(subject, message.toString());
+		}
 	}
 
 	private void addStartTaskOutputMissingDataSets(ProcessPluginApi api, Targets targets, Variables variables)
@@ -89,10 +99,19 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_MISSING);
 	}
 
-	private void updateTask(DsfClient client, Task task, Variables variables)
+	private void updateStartTask(DsfClient client, Task task, Variables variables)
 	{
 		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
 				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
 		variables.updateTask(response);
+	}
+
+	private void updateLatestTaskIfNotStartTask(DsfClient client, Task startTask, Task latestTask)
+	{
+		if (latestTask != null && startTask != latestTask)
+		{
+			client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(latestTask);
+		}
 	}
 }

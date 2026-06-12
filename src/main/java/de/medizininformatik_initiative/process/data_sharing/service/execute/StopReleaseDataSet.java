@@ -35,8 +35,8 @@ public class StopReleaseDataSet implements ServiceTask
 		questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.STOPPED);
 		api.getDsfClientProvider().getLocal().update(questionnaireResponse);
 
-		Task latestTask = variables.getLatestTask();
 		Task startTask = variables.getStartTask();
+		Task latestTask = variables.getLatestTask();
 
 		// latestTask not updated automatically in stop case
 		updateLatestTaskIfNotStartTask(api, startTask, latestTask);

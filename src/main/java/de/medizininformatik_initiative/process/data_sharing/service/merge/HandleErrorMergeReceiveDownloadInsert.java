@@ -37,16 +37,13 @@ public class HandleErrorMergeReceiveDownloadInsert implements ServiceTask, Initi
 		String errorCode = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR);
 		String errorMessage = variables
-				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RELEASE_ERROR_MESSAGE);
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 
 		if (dmsEmailEnabled)
 			sendMail(api, variables, startTask, errorMessage);
 
 		failAndAddOutputLatestTaskIfNotStartTask(api, startTask, latestTask, errorCode, errorMessage, variables);
 
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, null);
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-				null);
 		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_EXISTS,
 				true);
 	}

@@ -68,17 +68,21 @@ public class CommunicateMissingDataSetsCoordinate implements ServiceTask
 	private void sendMail(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier,
 			String dmsIdentifier)
 	{
-		String subject = "Missing data-sets in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
-				+ "'";
-		StringBuilder message = new StringBuilder("Data-sets are missing in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
-				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' at DMS '" + dmsIdentifier
-				+ "' regarding project-identifier '" + projectIdentifier + "' from the following organizations:\n");
+		List<Target> missing = targets.getEntries();
+		if (!missing.isEmpty())
+		{
+			String subject = "Missing data-sets in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
+			StringBuilder message = new StringBuilder("Data-sets are missing in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+					+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' at DMS '" + dmsIdentifier
+					+ "' regarding project-identifier '" + projectIdentifier + "' from the following organizations:\n");
 
-		for (Target target : targets.getEntries())
-			message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
+			for (Target target : missing)
+				message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
 
-		api.getMailService().send(subject, message.toString());
+			api.getMailService().send(subject, message.toString());
+		}
 	}
 
 	private void addStartTaskOutputMissingDataSets(ProcessPluginApi api, Variables variables, Targets targets)

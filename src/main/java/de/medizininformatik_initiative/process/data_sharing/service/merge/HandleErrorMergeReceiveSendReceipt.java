@@ -6,7 +6,6 @@ import org.hl7.fhir.r4.model.Task;
 import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
@@ -40,26 +39,22 @@ public class HandleErrorMergeReceiveSendReceipt implements ServiceTask, Initiali
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE);
 
 		if (dmsEmailEnabled)
-			sendMail(api, variables, startTask, errorMessage);
+			sendMail(api, variables, startTask, errorCode, errorMessage);
 
 		failAndAddOutputLatestTaskIfNotStartTask(api, startTask, latestTask, errorCode, errorMessage, variables);
-
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, null);
-		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
-				null);
 	}
 
-	private void sendMail(ProcessPluginApi api, Variables variables, Task task, String error)
+	private void sendMail(ProcessPluginApi api, Variables variables, Task task, String errorCode, String errorMessage)
 	{
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
-		String message = "Could not send receipt after successful download, decrypt, validate and insert data-set in process  '"
+		String message = "Could not send receipt in process  '"
 				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' and Task '"
-				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' from organization '"
-				+ task.getRequester().getIdentifier().getValue() + "' and project-identifier '" + projectIdentifier
-				+ "':\n" + "- status code: " + ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_RECEIVE_ERROR + "\n"
-				+ "- error: " + (error == null ? "none" : error);
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' to organization '"
+				+ task.getRequester().getIdentifier().getValue() + "' for project-identifier '" + projectIdentifier
+				+ "':\n" + "- status code: " + errorCode + "\n" + "- error: "
+				+ (errorMessage == null ? "none" : errorMessage);
 
 		api.getMailService().send(subject, message);
 	}

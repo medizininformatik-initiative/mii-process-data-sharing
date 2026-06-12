@@ -60,11 +60,10 @@ public class SendReceipt implements MessageSendTask, InitializingBean
 
 	private List<Task.ParameterComponent> createReceiptError(Variables variables)
 	{
-		return statusGenerator
-				.transformOutputToInputComponent(variables.getStartTask(), ConstantsDataSharing.CODESYSTEM_DATA_SHARING,
-						api.getProcessPluginDefinition().getResourceVersion(),
-						ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS)
-				.stream().map(this::receiveToReceiptStatus).toList();
+		return statusGenerator.transformOutputToInputComponent(variables.getLatestTask(),
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING, api.getProcessPluginDefinition().getResourceVersion(),
+				ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_STATUS).stream()
+				.map(this::receiveToReceiptStatus).toList();
 	}
 
 	private Task.ParameterComponent receiveToReceiptStatus(Task.ParameterComponent parameterComponent)
