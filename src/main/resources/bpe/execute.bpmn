@@ -56,7 +56,7 @@
       <bpmn:outgoing>Flow_0mjc1t1</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_0uqhokx" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
-    <bpmn:boundaryEvent id="executeDataSharingCreateError" attachedToRef="EncryptAndStoreDataSet">
+    <bpmn:boundaryEvent id="executeDataSharingEncryptAndStoreError" attachedToRef="EncryptAndStoreDataSet">
       <bpmn:outgoing>Flow_01byg20</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_1n4a0tp" errorRef="Error_0q3eg9c" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
@@ -94,7 +94,7 @@
       <bpmn:incoming>Flow_1im0jon</bpmn:incoming>
       <bpmn:outgoing>Flow_0h2aun2</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:boundaryEvent id="executeDataSharingSendError" attachedToRef="sendDataSet">
+    <bpmn:boundaryEvent id="executeDataSharingSendErrorNotRea" attachedToRef="sendDataSet">
       <bpmn:outgoing>Flow_0q3cy4p</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_0g01vrv" errorRef="Error_03kz9w1" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
@@ -160,14 +160,14 @@
     <bpmn:sequenceFlow id="Flow_0ypiu46" sourceRef="deleteDataSetSuccessfulSend" targetRef="Gateway_15m6htj" />
     <bpmn:sequenceFlow id="Flow_1uhk1x6" sourceRef="Gateway_15m6htj" targetRef="executeDataSharingEndEvent" />
     <bpmn:sequenceFlow id="Flow_0wxdwg5" sourceRef="deleteDataSetErrorSend" targetRef="handleErrorExecute" />
-    <bpmn:sequenceFlow id="Flow_01byg20" sourceRef="executeDataSharingCreateError" targetRef="deleteDataSetErrorSend" />
-    <bpmn:sequenceFlow id="Flow_0q3cy4p" sourceRef="executeDataSharingSendError" targetRef="deleteDataSetErrorSend" />
+    <bpmn:sequenceFlow id="Flow_01byg20" sourceRef="executeDataSharingEncryptAndStoreError" targetRef="deleteDataSetErrorSend" />
+    <bpmn:sequenceFlow id="Flow_0q3cy4p" sourceRef="executeDataSharingSendErrorNotRea" targetRef="deleteDataSetErrorSend" />
     <bpmn:sequenceFlow id="Flow_0o3tntz" sourceRef="executeDataSharingReceiptError" targetRef="deleteDataSetErrorSend" />
-    <bpmn:boundaryEvent id="Event_13apm5d" attachedToRef="sendDataSet">
+    <bpmn:boundaryEvent id="executeDataSharingSendErrorNotAllowed" attachedToRef="sendDataSet">
       <bpmn:outgoing>Flow_1mit5p1</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_15km716" errorRef="Error_0d3oxfy" camunda:errorCodeVariable="executeDataSharingError" camunda:errorMessageVariable="executeDataSharingErrorMessage" />
     </bpmn:boundaryEvent>
-    <bpmn:sequenceFlow id="Flow_1mit5p1" sourceRef="Event_13apm5d" targetRef="deleteDataSetErrorSend" />
+    <bpmn:sequenceFlow id="Flow_1mit5p1" sourceRef="executeDataSharingSendErrorNotAllowed" targetRef="deleteDataSetErrorSend" />
   </bpmn:process>
   <bpmn:message id="Message_3j9kns3" name="executeDataSharing" />
   <bpmn:message id="Message_07oua04" name="sendDataSet" />
@@ -260,6 +260,9 @@
       <bpmndi:BPMNShape id="Gateway_15m6htj_di" bpmnElement="Gateway_15m6htj" isMarkerVisible="true">
         <dc:Bounds x="2685" y="252" width="50" height="50" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rgqib7_di" bpmnElement="executeDataSharingSendErrorNotAllowed">
+        <dc:Bounds x="1832" y="299" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_16jxaih_di" bpmnElement="stopExecuteDataSharing">
         <dc:Bounds x="592" y="219" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -269,7 +272,7 @@
       <bpmndi:BPMNShape id="Event_0yzfn3s_di" bpmnElement="executeDataSharingReceiptError">
         <dc:Bounds x="2426" y="299" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0jbq8s0" bpmnElement="executeDataSharingSendError">
+      <bpmndi:BPMNShape id="BPMNShape_0jbq8s0" bpmnElement="executeDataSharingSendErrorNotRea">
         <dc:Bounds x="1876" y="299" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_0b2yvvq" bpmnElement="questionnaireError">
@@ -278,14 +281,11 @@
       <bpmndi:BPMNShape id="BPMNShape_07hod2e" bpmnElement="executeDataSharingValidateError">
         <dc:Bounds x="1422" y="299" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0eswkxc" bpmnElement="executeDataSharingCreateError">
+      <bpmndi:BPMNShape id="BPMNShape_0eswkxc" bpmnElement="executeDataSharingEncryptAndStoreError">
         <dc:Bounds x="1702" y="299" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1rl4yb8_di" bpmnElement="executeDataSharingReadError">
         <dc:Bounds x="1262" y="299" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1rgqib7_di" bpmnElement="Event_13apm5d">
-        <dc:Bounds x="1832" y="299" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_031nt59_di" bpmnElement="Flow_031nt59">
         <di:waypoint x="222" y="277" />

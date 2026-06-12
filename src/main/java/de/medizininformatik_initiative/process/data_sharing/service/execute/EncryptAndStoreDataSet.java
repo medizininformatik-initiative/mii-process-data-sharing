@@ -90,11 +90,12 @@ public class EncryptAndStoreDataSet implements ServiceTask, InitializingBean
 				dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 
 		ListResource transferBinaryReferenceList = new ListResource();
-		String receiverKeyId = ConstantsBase.NAMINGSYSTEM_MII_RECEIVER_KEY_ID_VALUE_DEFAULT_KEY_X25519;
-		PublicKey publicKey = readPublicKey(api, dmsIdentifier, projectIdentifier, receiverKeyId, task);
 
 		try
 		{
+			String receiverKeyId = ConstantsBase.NAMINGSYSTEM_MII_RECEIVER_KEY_ID_VALUE_DEFAULT_KEY_X25519;
+			PublicKey publicKey = readPublicKey(api, dmsIdentifier, projectIdentifier, receiverKeyId, task);
+
 			DocumentReference transferDocumentReference = createAndStoreDocumentReference(api, projectIdentifier,
 					initialDocumentReference, dmsIdentifier);
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION,

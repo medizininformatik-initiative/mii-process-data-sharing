@@ -2,15 +2,14 @@ package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
 import java.util.Objects;
 
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
+
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -50,13 +49,10 @@ public class HandleErrorExecute implements ServiceTask, InitializingBean
 		Task task = variables.getStartTask();
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String statusCode = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR);
 		String error = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE);
-
-		String statusCode = task.getOutput().stream().filter(o -> o.getValue() instanceof Coding)
-				.map(o -> (Coding) o.getValue())
-				.filter(c -> ConstantsBase.CODESYSTEM_DATA_SET_STATUS.equals(c.getSystem())).map(Coding::getCode)
-				.findFirst().orElse("unknown");
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
 		String message = "Could not provide data-set in process '"
