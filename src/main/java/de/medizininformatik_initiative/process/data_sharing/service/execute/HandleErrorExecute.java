@@ -9,7 +9,6 @@ import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.variables.Variables;
