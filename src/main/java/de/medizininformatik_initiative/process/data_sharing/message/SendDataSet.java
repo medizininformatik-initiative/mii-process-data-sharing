@@ -35,6 +35,8 @@ public class SendDataSet implements MessageSendTask
 	public List<ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api, Variables variables,
 			SendTaskValues sendTaskValues, Target target)
 	{
+		// TODO add identifier of used project specific public key to message
+
 		String documentReferenceId = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION);
 

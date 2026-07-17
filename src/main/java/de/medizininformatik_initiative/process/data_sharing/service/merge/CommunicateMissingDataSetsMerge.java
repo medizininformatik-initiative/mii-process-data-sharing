@@ -33,6 +33,7 @@ public class CommunicateMissingDataSetsMerge implements ServiceTask
 	@Override
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
+		// TODO delete project specific public key
 		Task startTask = variables.getStartTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		Targets targets = variables.getTargets();
