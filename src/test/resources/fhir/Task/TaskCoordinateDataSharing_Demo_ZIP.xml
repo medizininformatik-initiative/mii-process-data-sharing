@@ -1,16 +1,16 @@
 <Task xmlns="http://hl7.org/fhir">
    <meta>
-      <profile value="http://medizininformatik-initiative.de/fhir/StructureDefinition/task-coordinate-data-sharing|1.1" />
+      <profile value="http://medizininformatik-initiative.de/fhir/StructureDefinition/task-coordinate-data-sharing|2.0" />
    </meta>
-   <instantiatesCanonical value="http://medizininformatik-initiative.de/bpe/Process/coordinateDataSharing|1.1" />
+   <instantiatesCanonical value="http://medizininformatik-initiative.de/bpe/Process/coordinateDataSharing|2.0" />
    <status value="requested" />
    <intent value="order" />
    <authoredOn value="2022-09-15T16:02:10+02:00" />
    <requester>
-      <type value="Organization" />
+      <type value="Practitioner" />
       <identifier>
-         <system value="http://dsf.dev/sid/organization-identifier" />
-         <value value="Test_HRP" />
+         <system value="http://dsf.dev/sid/practitioner-identifier" />
+         <value value="to-be-replaced-with-certificate-email" />
       </identifier>
    </requester>
    <restriction>

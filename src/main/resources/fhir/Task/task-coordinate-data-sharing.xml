@@ -39,6 +39,7 @@
 		<type>
 			<coding>
 				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<version value="#{version}"/>
 				<code value="project-identifier" />
 			</coding>
 		</type>
@@ -51,6 +52,7 @@
 		<type>
 			<coding>
 				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<version value="#{version}"/>
 				<code value="extraction-period" />
 			</coding>
 		</type>
@@ -60,6 +62,7 @@
 		<type>
 			<coding>
 				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<version value="#{version}"/>
 				<code value="contract-url" />
 			</coding>
 		</type>
@@ -69,6 +72,7 @@
 		<type>
 			<coding>
 				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<version value="#{version}"/>
 				<code value="researcher-identifier" />
 			</coding>
 		</type>
@@ -81,6 +85,7 @@
 		<type>
 			<coding>
 				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<version value="#{version}"/>
 				<code value="dic-identifier" />
 			</coding>
 		</type>
@@ -96,6 +101,7 @@
 		<type>
 			<coding>
 				<system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+				<version value="#{version}"/>
 				<code value="dms-identifier" />
 			</coding>
 		</type>

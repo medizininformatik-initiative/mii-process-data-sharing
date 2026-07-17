@@ -1,65 +1,66 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import java.util.Objects;
+
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class HandleErrorExecute extends AbstractServiceDelegate
+public class HandleErrorExecute implements ServiceTask, InitializingBean
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleErrorExecute.class);
 
-	public HandleErrorExecute(ProcessPluginApi api)
+	private final DataSetStatusGenerator statusGenerator;
+	private final boolean dicEmailEnabled;
+
+	public HandleErrorExecute(DataSetStatusGenerator statusGenerator, boolean dicEmailEnabled)
 	{
-		super(api);
+		this.statusGenerator = statusGenerator;
+		this.dicEmailEnabled = dicEmailEnabled;
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void afterPropertiesSet()
 	{
-		Task startTask = variables.getStartTask();
-		Task latestTask = variables.getLatestTask();
-		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		String error = variables
-				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE);
+		Objects.requireNonNull(statusGenerator, "statusGenerator");
+	}
 
-		sendMail(startTask, dmsIdentifier, projectIdentifier, error);
-		failTaskIfNotStartTask(startTask, latestTask, variables);
+	@Override
+	public void execute(ProcessPluginApi api, Variables variables)
+	{
+		logger.warn("Recreating user-task 'release-data-set'");
+		if (dicEmailEnabled)
+			sendMail(api, variables);
 
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, null);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE, null);
 	}
 
-	private void sendMail(Task startTask, String dmsIdentifier, String projectIdentifier, String error)
+	private void sendMail(ProcessPluginApi api, Variables variables)
 	{
-		logger.warn("{} - creating new user-task 'release-data-set'", error);
+		Task task = variables.getStartTask();
+		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String statusCode = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR);
+		String error = variables
+				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR_MESSAGE);
 
 		String subject = "Error in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
-		String message = "Could not send data-set in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task with id '"
-				+ startTask.getId() + "' to DMS with identifier '" + dmsIdentifier + "' for project-identifier '"
-				+ projectIdentifier + "'.\n\nError:\n" + (error == null ? "Unknown" : error) + "\n\n"
+		String message = "Could not provide data-set in process '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' and Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' for DMS '" + dmsIdentifier
+				+ "' regarding project-identifier '" + projectIdentifier + "':\n" + "- status code: " + statusCode
+				+ "\n" + "- error: " + (error == null ? "none" : error) + "\n\n"
 				+ "Please repair the error and answer again the new user-task 'release-data-set'.";
 
 		api.getMailService().send(subject, message);
-	}
-
-	private void failTaskIfNotStartTask(Task startTask, Task latestTask, Variables variables)
-	{
-		if (latestTask != null && startTask != latestTask)
-		{
-			latestTask.setStatus(Task.TaskStatus.FAILED);
-			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
-					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-					.update(latestTask);
-			variables.updateTask(latestTask);
-		}
 	}
 }

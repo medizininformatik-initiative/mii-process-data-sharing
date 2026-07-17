@@ -2,63 +2,63 @@ package de.medizininformatik_initiative.process.data_sharing.service.coordinate;
 
 import java.util.List;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Targets;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.service.TaskHelper;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class CommunicateReceivedDataSet extends AbstractServiceDelegate
+public class CommunicateReceivedDataSet implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CommunicateReceivedDataSet.class);
 
-	public CommunicateReceivedDataSet(ProcessPluginApi api)
+	private final boolean hrpEmailEnabled;
+
+	public CommunicateReceivedDataSet(boolean hrpEmailEnabled)
 	{
-		super(api);
+		this.hrpEmailEnabled = hrpEmailEnabled;
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task startTask = variables.getStartTask();
 		Task latestTask = variables.getLatestTask();
 
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
-		String organizationIdentifier = getOrganizationIdentifier(latestTask);
+		String organizationIdentifier = getOrganizationIdentifier(api.getTaskHelper(), latestTask);
 
-		log(dmsIdentifier, organizationIdentifier, projectIdentifier, startTask.getId());
-		sendMail(latestTask, dmsIdentifier, organizationIdentifier, projectIdentifier);
+		logger.info("DMS '{}' received data-set from organization '{}' and project-identifier '{}' in Task '{}'",
+				dmsIdentifier, organizationIdentifier, projectIdentifier,
+				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(startTask));
+		if (hrpEmailEnabled)
+			sendMail(api, latestTask, dmsIdentifier, organizationIdentifier, projectIdentifier);
 
-		List<Target> targets = variables.getTargets().getEntries();
-		List<Target> targetsWithoutReceivedIdentifier = targets.stream()
-				.filter(t -> !organizationIdentifier.equals(t.getOrganizationIdentifierValue())).toList();
-		Targets newTargets = variables.createTargets(targetsWithoutReceivedIdentifier);
-		variables.setTargets(newTargets);
+		addStartTaskOutputReceivedDataSet(api, variables, organizationIdentifier);
+		updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 
-		if (targetsWithoutReceivedIdentifier.isEmpty())
-			variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_ALL_DATA_SETS_RECEIVED, true);
-
-		latestTask.setStatus(Task.TaskStatus.COMPLETED);
-		api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-				.update(latestTask);
-		variables.updateTask(latestTask);
+		removeOrganizationFromTargets(organizationIdentifier, variables);
+		completeLatestTask(api.getDsfClientProvider().getLocal(), latestTask, variables);
 	}
 
-	private String getOrganizationIdentifier(Task task)
+	private String getOrganizationIdentifier(TaskHelper helper, Task task)
 	{
-		return api.getTaskHelper()
+		return helper
 				.getFirstInputParameterValue(task,
 						new Coding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING).setCode(
 								ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DIC_IDENTIFIER),
@@ -66,22 +66,52 @@ public class CommunicateReceivedDataSet extends AbstractServiceDelegate
 				.map(Reference::getIdentifier).map(Identifier::getValue).orElse("unknown");
 	}
 
-	private void log(String dmsIdentifier, String organizationIdentifier, String projectIdentifier, String taskId)
+	private void sendMail(ProcessPluginApi api, Task task, String dmsIdentifier, String organizationIdentifier,
+			String projectIdentifier)
 	{
-		logger.info(
-				"DMS '{}' received data-set from organization '{}' in data-sharing project '{}' for Task with id '{}'",
-				dmsIdentifier, organizationIdentifier, projectIdentifier, taskId);
-	}
-
-	private void sendMail(Task task, String dmsIdentifier, String organizationIdentifier, String projectIdentifier)
-	{
-		String subject = "New data received in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
-				+ "'";
-		String message = "New data has been stored in process '"
-				+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task with id '" + task.getId()
-				+ "' at DMS with identifier '" + dmsIdentifier + "' for data-sharing project '" + projectIdentifier
-				+ "' received from organization '" + organizationIdentifier + "':\n";
+		String subject = "Data-set successfully delivered in process '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "'";
+		String message = "A data-set has been successfully delivered and retrieved in process '"
+				+ ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING + "' for Task '"
+				+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' from DIC '" + organizationIdentifier
+				+ "' to DMS '" + dmsIdentifier + "' regarding project-identifier '" + projectIdentifier + "'";
 
 		api.getMailService().send(subject, message);
+	}
+
+	private void addStartTaskOutputReceivedDataSet(ProcessPluginApi api, Variables variables,
+			String organizationIdentifier)
+	{
+		Task task = variables.getStartTask();
+		task.addOutput()
+				.setValue(new Reference()
+						.setIdentifier(NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier))
+						.setType(ResourceType.Organization.name()))
+				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
+				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
+		variables.updateTask(task);
+	}
+
+	private void removeOrganizationFromTargets(String organizationIdentifier, Variables variables)
+	{
+		List<Target> targets = variables.getTargets().getEntries();
+		List<Target> targetsWithoutReceivedIdentifier = targets.stream()
+				.filter(t -> !organizationIdentifier.equals(t.getOrganizationIdentifierValue())).toList();
+		Targets newTargets = variables.createTargets(targetsWithoutReceivedIdentifier);
+		variables.setTargets(newTargets);
+	}
+
+	private void completeLatestTask(DsfClient client, Task task, Variables variables)
+	{
+		task.setStatus(Task.TaskStatus.COMPLETED);
+		updateTask(client, task, variables);
+	}
+
+	private void updateTask(DsfClient client, Task task, Variables variables)
+	{
+		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
+		variables.updateTask(response);
 	}
 }

@@ -2,19 +2,20 @@ package de.medizininformatik_initiative.process.data_sharing.service.coordinate;
 
 import java.util.regex.Pattern;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.service.QuestionnaireResponseHelper;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class CheckQuestionnaireConsolidateDataSetsReleaseInput extends AbstractServiceDelegate
+public class CheckQuestionnaireConsolidateDataSetsReleaseInput implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory
 			.getLogger(CheckQuestionnaireConsolidateDataSetsReleaseInput.class);
@@ -22,23 +23,23 @@ public class CheckQuestionnaireConsolidateDataSetsReleaseInput extends AbstractS
 	private static final Pattern PERIOD_ISO_8601 = Pattern.compile(
 			"P(?:([0-9]+)Y)?(?:([0-9]+)M)?(?:([0-9]+)D)?(T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)(?:[.,]([0-9]{0,9}))?S)?)?");
 
-	public CheckQuestionnaireConsolidateDataSetsReleaseInput(ProcessPluginApi api)
+	public CheckQuestionnaireConsolidateDataSetsReleaseInput()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
+		Task task = variables.getStartTask();
 		QuestionnaireResponse questionnaireResponse = variables.getLatestReceivedQuestionnaireResponse();
 
-		boolean isReleased = isReleased(questionnaireResponse);
-
+		boolean isReleased = isReleased(api.getQuestionnaireResponseHelper(), questionnaireResponse);
 		variables.setBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_CONSOLIDATE_DATA_SETS_RELEASED, isReleased);
 
 		if (!isReleased)
 		{
-			String extractionPeriod = getExtendedExtractionPeriod(questionnaireResponse);
+			String extractionPeriod = getExtendedExtractionPeriod(api.getQuestionnaireResponseHelper(),
+					questionnaireResponse);
 			variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_EXTRACTION_PERIOD, extractionPeriod);
 
 			String projectIdentifier = variables
@@ -46,14 +47,15 @@ public class CheckQuestionnaireConsolidateDataSetsReleaseInput extends AbstractS
 			String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
 
 			logger.info(
-					"Extending data extraction period for the project with identifier '{}' and DMS '{}' for the following ISO 8601 time duration pattern: {}",
-					projectIdentifier, dmsIdentifier, extractionPeriod);
+					"Extending data extraction period for the project-identifier '{}' and DMS '{}' for '{}' in Task '{}'",
+					projectIdentifier, dmsIdentifier, extractionPeriod,
+					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 		}
 	}
 
-	private boolean isReleased(QuestionnaireResponse questionnaireResponse)
+	private boolean isReleased(QuestionnaireResponseHelper helper, QuestionnaireResponse questionnaireResponse)
 	{
-		return api.getQuestionnaireResponseHelper()
+		return helper
 				.getFirstItemLeaveMatchingLinkId(questionnaireResponse,
 						ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE)
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasAnswer)
@@ -63,9 +65,10 @@ public class CheckQuestionnaireConsolidateDataSetsReleaseInput extends AbstractS
 				.filter(a -> a instanceof BooleanType).map(b -> ((BooleanType) b).getValue()).orElse(false);
 	}
 
-	private String getExtendedExtractionPeriod(QuestionnaireResponse questionnaireResponse)
+	private String getExtendedExtractionPeriod(QuestionnaireResponseHelper helper,
+			QuestionnaireResponse questionnaireResponse)
 	{
-		return api.getQuestionnaireResponseHelper()
+		return helper
 				.getFirstItemLeaveMatchingLinkId(questionnaireResponse,
 						ConstantsDataSharing.QUESTIONNAIRES_ITEM_EXTENDED_EXTRACTION_PERIOD)
 				.filter(QuestionnaireResponse.QuestionnaireResponseItemComponent::hasAnswer)
