@@ -4,7 +4,6 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v1.ProcessPluginApi;
 import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
 import dev.dsf.bpe.v1.variables.Variables;
@@ -46,9 +45,6 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 		if (latestTask != null && startTask != latestTask)
 		{
 			latestTask.setStatus(Task.TaskStatus.FAILED);
-			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
-					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-					.update(latestTask);
 			variables.updateTask(latestTask);
 		}
 	}

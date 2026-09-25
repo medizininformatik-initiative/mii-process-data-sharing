@@ -45,6 +45,8 @@ public class ReinsertTarget extends AbstractServiceDelegate
 
 		variables.setTarget(reinsertTarget);
 
+		updateTaskIfFailed(api, latestTask);
+
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR, null);
 		variables.setString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_MESSAGE,
 				null);
@@ -72,5 +74,12 @@ public class ReinsertTarget extends AbstractServiceDelegate
 		return api.getTaskHelper()
 				.getFirstInputParameterValue(task, CodeSystems.BpmnMessage.correlationKey(), StringType.class)
 				.orElseThrow(() -> new RuntimeException("CorrelationKey is missing")).getValue();
+	}
+
+	private void updateTaskIfFailed(ProcessPluginApi api, Task latestTask)
+	{
+		api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
+				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
+				.update(latestTask);
 	}
 }
