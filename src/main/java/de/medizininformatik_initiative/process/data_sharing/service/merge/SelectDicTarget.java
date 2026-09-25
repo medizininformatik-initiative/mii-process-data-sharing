@@ -38,7 +38,12 @@ public class SelectDicTarget implements ServiceTask
 		variables.setTarget(dicTarget);
 
 		if (!variables.getBoolean(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_MERGE_RECEIVE_ERROR_EXISTS))
+		{
 			addStartTaskOutputReceivedDataSet(api, variables, dicIdentifier.getValue());
+
+			if (isLocalOrganization(api, dicIdentifier))
+				completeLatestTask(api, variables);
+		}
 
 		removeOrganizationFromTargets(dicIdentifier.getValue(), variables);
 	}
@@ -98,6 +103,33 @@ public class SelectDicTarget implements ServiceTask
 			task = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
 					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
 		}
+
+		variables.updateTask(task);
+	}
+
+	private boolean isLocalOrganization(ProcessPluginApi api, Identifier organizationIdentifier)
+	{
+		return api.getOrganizationProvider().getLocalOrganizationIdentifierValue()
+				.map(organizationIdentifier.getValue()::equals).orElse(false);
+	}
+
+	/*
+	 * If the DMS is also the DIC, the receipt is delivered to the execute process on the same DSF instance, which
+	 * immediately continues and permanently deletes the DocumentReference referenced by the received Task. The end
+	 * listener of this subprocess would complete the received Task only afterwards and fail the update due to the
+	 * unresolvable reference. Completing the Task before sending the receipt prevents this, the end listener skips
+	 * Tasks not in-progress.
+	 */
+	private void completeLatestTask(ProcessPluginApi api, Variables variables)
+	{
+		Task task = variables.getLatestTask();
+
+		if (task == null || !Task.TaskStatus.INPROGRESS.equals(task.getStatus()))
+			return;
+
+		task.setStatus(Task.TaskStatus.COMPLETED);
+		task = api.getDsfClientProvider().getLocal().withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
 
 		variables.updateTask(task);
 	}
