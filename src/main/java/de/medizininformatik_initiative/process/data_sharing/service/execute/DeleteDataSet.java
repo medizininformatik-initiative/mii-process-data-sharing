@@ -2,7 +2,6 @@ package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
 import java.util.List;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Binary;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.IdType;
@@ -15,22 +14,22 @@ import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.BasicFhirWebserviceClient;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.BasicDsfClient;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class DeleteDataSet extends AbstractServiceDelegate
+public class DeleteDataSet implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(DeleteDataSet.class);
 
-	public DeleteDataSet(ProcessPluginApi api)
+	public DeleteDataSet()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task task = variables.getStartTask();
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
@@ -39,29 +38,17 @@ public class DeleteDataSet extends AbstractServiceDelegate
 		String transferDocumentReferenceLocation = variables
 				.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DOCUMENT_REFERENCE_LOCATION);
 		ListResource transferBinaryReferenceList = variables
-				.getResource(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES);
+				.getFhirResource(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_TRANSFER_DATA_RESOURCES);
 
 		logger.info(
-				"Permanently deleting data-set provided for DMS '{}' and project-identifier '{}' referenced in Task with id '{}' (DocumentReference with id '{}' and its encrypted attachments)",
-				dmsIdentifier, projectIdentifier, task.getId(), transferDocumentReferenceLocation);
+				"Permanently deleting data-set provided for DMS '{}' and project-identifier '{}' in Task '{}' (DocumentReference '{}' and its encrypted attachments)",
+				dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
+				transferDocumentReferenceLocation);
 
-		try
-		{
-			List<IdType> attachments = getAttachmentIds(transferBinaryReferenceList);
+		List<IdType> attachments = getAttachmentIds(transferBinaryReferenceList);
 
-			deletePermanently(attachments, Binary.class);
-			deletePermanently(new IdType(transferDocumentReferenceLocation), DocumentReference.class);
-		}
-		catch (Exception exception)
-		{
-			logger.warn(
-					"Could not permanently delete data-set for DMS '{}' and project-identifier '{}' referenced in Task with id '{}' (DocumentReference with id '{}' and its encrypted attachments) - {}",
-					dmsIdentifier, projectIdentifier, task.getId(), transferDocumentReferenceLocation,
-					exception.getMessage());
-
-			throw new RuntimeException("Permanently deleting encrypted data-set failed - " + exception.getMessage(),
-					exception);
-		}
+		deletePermanently(api, attachments, Binary.class);
+		deletePermanently(api, new IdType(transferDocumentReferenceLocation), DocumentReference.class);
 	}
 
 	private List<IdType> getAttachmentIds(ListResource transferBinaryReferenceList)
@@ -71,18 +58,19 @@ public class DeleteDataSet extends AbstractServiceDelegate
 				.map(i -> (IdType) i.getReferenceElement()).toList();
 	}
 
-	private void deletePermanently(List<IdType> idTypes, Class<? extends Resource> resourceType)
+	private void deletePermanently(ProcessPluginApi api, List<IdType> idTypes, Class<? extends Resource> resourceType)
 	{
-		idTypes.forEach(id -> deletePermanently(id, resourceType));
+		idTypes.forEach(id -> deletePermanently(api, id, resourceType));
 	}
 
-	private void deletePermanently(IdType idType, Class<? extends Resource> resourceType)
+	private void deletePermanently(ProcessPluginApi api, IdType idType, Class<? extends Resource> resourceType)
 	{
 		idType = idType.toVersionless();
 		if (idType.hasIdPart())
 		{
-			BasicFhirWebserviceClient client = api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
-					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN);
+			BasicDsfClient client = api.getDsfClientProvider().getLocal().withRetry(
+					ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+					DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
 			client.delete(resourceType, idType.getIdPart());
 			client.deletePermanently(resourceType, idType.getIdPart());
 		}

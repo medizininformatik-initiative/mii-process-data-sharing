@@ -1,31 +1,31 @@
 package de.medizininformatik_initiative.process.data_sharing.questionnaire;
 
-import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.DefaultUserTaskListener;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.DefaultUserTaskListener;
+import dev.dsf.bpe.v2.activity.values.CreateQuestionnaireResponseValues;
+import dev.dsf.bpe.v2.variables.Variables;
 
 public class ReleaseMergedDataSetListener extends DefaultUserTaskListener
 {
-	private final ProcessPluginApi api;
+	private final boolean dmsEmailEnabled;
 
-	public ReleaseMergedDataSetListener(ProcessPluginApi api)
+	public ReleaseMergedDataSetListener(boolean dmsEmailEnabled)
 	{
-		super(api);
-		this.api = api;
+		this.dmsEmailEnabled = dmsEmailEnabled;
 	}
 
-	@Override
-	protected void beforeQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
+	protected void beforeQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
+			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse beforeCreate)
 	{
-		String projectIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
-		questionnaireResponse.getItem().stream()
+		beforeCreate.getItem().stream()
 				.filter(i -> ConstantsDataSharing.QUESTIONNAIRES_ITEM_DISPLAY.equals(i.getLinkId())
 						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_RELEASE.equals(i.getLinkId())
 						|| ConstantsDataSharing.QUESTIONNAIRES_ITEM_DATA_SET_URL.equals(i.getLinkId()))
@@ -34,22 +34,26 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener
 	}
 
 	@Override
-	protected void afterQuestionnaireResponseCreate(DelegateTask userTask, QuestionnaireResponse questionnaireResponse)
+	protected void afterQuestionnaireResponseCreate(ProcessPluginApi api, Variables variables,
+			CreateQuestionnaireResponseValues createQuestionnaireResponseValues, QuestionnaireResponse afterCreate)
 	{
-		IdType id = questionnaireResponse.getIdElement();
-		IdType absoluteId = new IdType(api.getFhirWebserviceClientProvider().getLocalWebserviceClient().getBaseUrl(),
-				id.getResourceType(), id.getIdPart(), null);
+		if (dmsEmailEnabled)
+		{
+			Task task = variables.getStartTask();
+			String absoluteId = getDsfFhirServerAbsoluteId(api, afterCreate.getIdElement());
+			String projectIdentifier = variables
+					.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 
-		String projectIdentifier = (String) userTask.getExecution()
-				.getVariable(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+			String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
+					+ "'";
+			String message = "A new user-task 'release-merged-data-set' for data-sharing project '" + projectIdentifier
+					+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+					+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task)
+					+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
+					+ absoluteId;
 
-		String subject = "New user-task in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
-		String message = "A new user-task 'release-merged-data-set' for data-sharing project '" + projectIdentifier
-				+ "' in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
-				+ "' is waiting for it's completion. It can be accessed using the following link:\n" + "- "
-				+ absoluteId.getValue();
-
-		api.getMailService().send(subject, message);
+			api.getMailService().send(subject, message);
+		}
 	}
 
 	private void replace(QuestionnaireResponse.QuestionnaireResponseItemComponent item, String projectIdentifier)
@@ -72,5 +76,11 @@ public class ReleaseMergedDataSetListener extends DefaultUserTaskListener
 	{
 		return toReplace.replace(ConstantsDataSharing.QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER,
 				"\"" + projectIdentifier + "\"");
+	}
+
+	private String getDsfFhirServerAbsoluteId(ProcessPluginApi api, IdType idType)
+	{
+		return new IdType(api.getDsfClientProvider().getLocal().getBaseUrl(), idType.getResourceType(),
+				idType.getIdPart(), idType.getVersionIdPart()).getValue();
 	}
 }

@@ -1,32 +1,29 @@
 package de.medizininformatik_initiative.process.data_sharing.service.execute;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Task;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.constants.CodeSystems;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.CodeSystems;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class SelectDataSetTarget extends AbstractServiceDelegate
+public class SelectDataSetTarget implements ServiceTask
 {
 
-	public SelectDataSetTarget(ProcessPluginApi api)
+	public SelectDataSetTarget()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		String dmsIdentifier = getDmsIdentifier(variables);
-		String correlationKey = getCorrelationKey(variables);
-		Target target = getDmsTarget(dmsIdentifier, correlationKey, variables);
+		String correlationKey = getCorrelationKey(api, variables);
+		Target target = getDmsTarget(api, dmsIdentifier, correlationKey, variables);
 
 		variables.setTarget(target);
 	}
@@ -37,24 +34,24 @@ public class SelectDataSetTarget extends AbstractServiceDelegate
 
 	}
 
-	private String getCorrelationKey(Variables variables)
+	private String getCorrelationKey(ProcessPluginApi api, Variables variables)
 	{
 		Task task = variables.getStartTask();
 		return api.getTaskHelper().getFirstInputParameterStringValue(task, CodeSystems.BpmnMessage.correlationKey())
-				.orElseThrow(
-						() -> new RuntimeException("No correlation key found in Task with id '" + task.getId() + "'"));
+				.orElseThrow(() -> new RuntimeException("Task.input:correlation-key missing"));
 	}
 
-	private Target getDmsTarget(String identifier, String correlationKey, Variables variables)
+	private Target getDmsTarget(ProcessPluginApi api, String organizationIdentifier, String correlationKey,
+			Variables variables)
 	{
 		return api.getEndpointProvider().getEndpoint(NamingSystems.OrganizationIdentifier.withValue(
 				ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM),
-				NamingSystems.OrganizationIdentifier.withValue(identifier),
-				new Coding().setSystem(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE)
-						.setCode(ConstantsBase.CODESYSTEM_DSF_ORGANIZATION_ROLE_VALUE_DMS))
-				.map(e -> variables.createTarget(identifier, e.getIdentifierFirstRep().getValue(), e.getAddress(),
-						correlationKey))
-				.orElseThrow(
-						() -> new RuntimeException("No Endpoint of DMS with identifier '" + identifier + "' found"));
+				NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier),
+				CodeSystems.OrganizationRole.dms())
+				.map(e -> variables.createTarget(organizationIdentifier, e.getIdentifierFirstRep().getValue(),
+						e.getAddress(), correlationKey))
+				.orElseThrow(() -> new RuntimeException("Could not find Endpoint of organization '"
+						+ ConstantsBase.NAMINGSYSTEM_DSF_ORGANIZATION_IDENTIFIER_MEDICAL_INFORMATICS_INITIATIVE_CONSORTIUM
+						+ "|" + organizationIdentifier + "'"));
 	}
 }

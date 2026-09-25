@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
 import de.medizininformatik_initiative.process.data_sharing.DataSharingProcessPluginDefinition;
-import dev.dsf.bpe.v1.ProcessPluginDefinition;
+import dev.dsf.bpe.v2.ProcessPluginDefinition;
 
 public class DataSharingProcessPluginDefinitionTest
 {
@@ -22,15 +22,15 @@ public class DataSharingProcessPluginDefinitionTest
 
 		var coordinate = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING);
 		assertNotNull(coordinate);
-		assertEquals(9, coordinate.stream().filter(this::exists).count());
+		assertEquals(10, coordinate.stream().filter(this::exists).count());
 
 		var execute = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING);
 		assertNotNull(execute);
-		assertEquals(11, execute.stream().filter(this::exists).count());
+		assertEquals(12, execute.stream().filter(this::exists).count());
 
 		var merge = resourcesByProcessId.get(ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING);
 		assertNotNull(merge);
-		assertEquals(14, merge.stream().filter(this::exists).count());
+		assertEquals(13, merge.stream().filter(this::exists).count());
 	}
 
 	private boolean exists(String file)

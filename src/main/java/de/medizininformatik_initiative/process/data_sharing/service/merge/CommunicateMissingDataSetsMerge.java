@@ -1,6 +1,7 @@
 package de.medizininformatik_initiative.process.data_sharing.service.merge;
 
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import java.util.List;
+
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Task;
@@ -8,68 +9,82 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Targets;
-import dev.dsf.bpe.v1.variables.Variables;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class CommunicateMissingDataSetsMerge extends AbstractServiceDelegate
+public class CommunicateMissingDataSetsMerge implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CommunicateMissingDataSetsMerge.class);
 
-	public CommunicateMissingDataSetsMerge(ProcessPluginApi api)
+	private final boolean dmsEmailEnabled;
+
+	public CommunicateMissingDataSetsMerge(boolean dmsEmailEnabled)
 	{
-		super(api);
+		this.dmsEmailEnabled = dmsEmailEnabled;
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
-		String taskId = variables.getStartTask().getId();
+		// TODO delete project specific public key
+		Task startTask = variables.getStartTask();
 		String projectIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
 		Targets targets = variables.getTargets();
 
-		logMissingDataSets(targets, taskId, projectIdentifier);
-		sendMail(targets, projectIdentifier);
-		outputMissingDataSets(targets, variables);
+		logMissingDataSets(api, targets, startTask, projectIdentifier);
+		if (dmsEmailEnabled)
+			sendMail(api, targets, startTask, projectIdentifier);
+
+		addStartTaskOutputMissingDataSets(api, targets, variables);
+		updateStartTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 	}
 
-	private void logMissingDataSets(Targets targets, String taskId, String projectIdentifier)
+	private void logMissingDataSets(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier)
 	{
-		targets.getEntries().forEach(target -> log(target, taskId, projectIdentifier));
+		targets.getEntries().forEach(target -> log(api, target, task, projectIdentifier));
 	}
 
-	private void log(Target target, String taskId, String projectIdentifier)
+	private void log(ProcessPluginApi api, Target target, Task task, String projectIdentifier)
 	{
-		logger.warn("Missing data-set from organization '{}' in data-sharing project '{}' and Task with id '{}'",
-				target.getOrganizationIdentifierValue(), projectIdentifier, taskId);
+		logger.warn("Missing data-set from organization '{}' and project-identifier '{}' in Task '{}'",
+				target.getOrganizationIdentifierValue(), projectIdentifier,
+				api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 	}
 
-	private void sendMail(Targets targets, String projectIdentifier)
+	private void sendMail(ProcessPluginApi api, Targets targets, Task task, String projectIdentifier)
 	{
-		String subject = "Missing data-sets in process '" + ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING
-				+ "'";
-		StringBuilder message = new StringBuilder("Data-sets are missing for data-sharing project '")
-				.append(projectIdentifier).append("' in process '")
-				.append(ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING)
-				.append("' from the following organizations:\n");
+		List<Target> missing = targets.getEntries();
+		if (!missing.isEmpty())
+		{
+			String subject = "Missing data-sets in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "'";
+			StringBuilder message = new StringBuilder("Data-sets are missing in process '"
+					+ ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING + "' for Task '"
+					+ api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task) + "' regarding project-identifier '"
+					+ projectIdentifier + "' from the following organizations:\n");
 
-		for (Target target : targets.getEntries())
-			message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
+			for (Target target : missing)
+				message.append("- ").append(target.getOrganizationIdentifierValue()).append("\n");
 
-		api.getMailService().send(subject, message.toString());
+			api.getMailService().send(subject, message.toString());
+		}
 	}
 
-	private void outputMissingDataSets(Targets targets, Variables variables)
+	private void addStartTaskOutputMissingDataSets(ProcessPluginApi api, Targets targets, Variables variables)
 	{
 		Task task = variables.getStartTask();
-		targets.getEntries().forEach(target -> output(task, target));
+		targets.getEntries().forEach(target -> output(api, task, target));
 		variables.updateTask(task);
 	}
 
-	private void output(Task task, Target target)
+	private void output(ProcessPluginApi api, Task task, Target target)
 	{
 		task.addOutput()
 				.setValue(new Reference()
@@ -77,6 +92,14 @@ public class CommunicateMissingDataSetsMerge extends AbstractServiceDelegate
 								NamingSystems.OrganizationIdentifier.withValue(target.getOrganizationIdentifierValue()))
 						.setType(ResourceType.Organization.name()))
 				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
+				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
 				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_MISSING);
+	}
+
+	private void updateStartTask(DsfClient client, Task task, Variables variables)
+	{
+		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
+		variables.updateTask(response);
 	}
 }

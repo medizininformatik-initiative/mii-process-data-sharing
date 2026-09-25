@@ -3,8 +3,6 @@ package de.medizininformatik_initiative.process.data_sharing.service.execute;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.PrimitiveType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.StringType;
@@ -13,21 +11,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.medizininformatik_initiative.process.data_sharing.ConstantsDataSharing;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 
-public class CheckQuestionnaireDataSetReleaseInput extends AbstractServiceDelegate
+public class CheckQuestionnaireDataSetReleaseInput implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CheckQuestionnaireDataSetReleaseInput.class);
 
-	public CheckQuestionnaireDataSetReleaseInput(ProcessPluginApi api)
+	public CheckQuestionnaireDataSetReleaseInput()
 	{
-		super(api);
 	}
 
 	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables)
+	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		Task task = variables.getStartTask();
 		String dmsIdentifier = variables.getString(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DMS_IDENTIFIER);
@@ -36,21 +35,21 @@ public class CheckQuestionnaireDataSetReleaseInput extends AbstractServiceDelega
 
 		if (projectIdentifierMatch(questionnaireResponse, projectIdentifier))
 		{
-			logger.info(
-					"Released data-set provided for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}'",
-					dmsIdentifier, projectIdentifier, task.getId());
+			logger.info("Released data-set for transfer to DMS '{}' for project-identifier '{}' in Task '{}'",
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task));
 		}
 		else
 		{
 			String expectedIdentifier = getProjectIdentifier(questionnaireResponse);
-			logger.warn(
-					"Could not release data-set for DMS '{}' and data-sharing project '{}' referenced in Task with id '{}': expected and provided project identifier do not match (expected: {}, provided: {})",
-					dmsIdentifier, projectIdentifier, task.getId(), expectedIdentifier,
-					projectIdentifier.toLowerCase());
+			logger.error(
+					"Release data-set to DMS '{}' for project-identifier '{}' for Task '{}' failed - expected and provided project-identifier do not match (expected: {}, provided: {}) - throwing error boundary event",
+					dmsIdentifier, projectIdentifier, api.getTaskHelper().getLocalVersionlessAbsoluteUrl(task),
+					expectedIdentifier, projectIdentifier);
 
-			String error = "Release data-set failed - project identifier do not match (expected: "
-					+ projectIdentifier.toLowerCase() + ", provided:" + expectedIdentifier + ")";
-			throw new BpmnError(ConstantsDataSharing.BPMN_EXECUTION_VARIABLE_DATA_SHARING_EXECUTE_ERROR, error);
+			String message = "Release data-set failed" + ConstantsBase.EXCEPTION_MESSAGE_DIVIDER
+					+ "project-identifiers do not match (expected: " + projectIdentifier + ", provided:"
+					+ expectedIdentifier + ")";
+			throw new ErrorBoundaryEvent(ConstantsBase.CODESYSTEM_DATA_SET_STATUS_VALUE_NOT_SENT, message);
 		}
 	}
 

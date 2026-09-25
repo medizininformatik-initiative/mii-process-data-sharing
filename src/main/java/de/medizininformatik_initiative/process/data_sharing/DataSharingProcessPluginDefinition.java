@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import de.medizininformatik_initiative.process.data_sharing.spring.config.DataSharingConfig;
-import de.medizininformatik_initiative.process.data_sharing.spring.config.DataSharingVariablesConfig;
-import de.medizininformatik_initiative.process.data_sharing.spring.config.DicFhirClientConfig;
-import de.medizininformatik_initiative.process.data_sharing.spring.config.DmsFhirClientConfig;
-import dev.dsf.bpe.v1.ProcessPluginDefinition;
+import dev.dsf.bpe.v2.ProcessPluginDefinition;
 
 public class DataSharingProcessPluginDefinition implements ProcessPluginDefinition
 {
-	public static final String VERSION = "1.1.1.0";
+	public static final String VERSION = "2.0.0.0";
 	public static final LocalDate RELEASE_DATE = LocalDate.of(2025, 10, 10);
 
 	@Override
@@ -42,8 +39,7 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 	@Override
 	public List<Class<?>> getSpringConfigurations()
 	{
-		return List.of(DataSharingConfig.class, DataSharingVariablesConfig.class, DicFhirClientConfig.class,
-				DmsFhirClientConfig.class);
+		return List.of(DataSharingConfig.class);
 	}
 
 	@Override
@@ -53,12 +49,12 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 		var aExe = "fhir/ActivityDefinition/data-sharing-execute.xml";
 		var aMer = "fhir/ActivityDefinition/data-sharing-merge.xml";
 
-		var cCrypto = "fhir/CodeSystem/mii-cryptography.xml";
 		var cDaSeSt = "fhir/CodeSystem/mii-data-set-status.xml";
 		var cDaSh = "fhir/CodeSystem/data-sharing.xml";
 
 		var eDaSeStEr = "fhir/StructureDefinition/extension-data-set-status-error.xml";
 
+		var nReKeId = "fhir/NamingSystem/mii-receiver-key-id.xml";
 		var nPrId = "fhir/NamingSystem/mii-project-identifier.xml";
 
 		var qReCon = "fhir/Questionnaire/questionnaire-release-consolidate-data-sets.xml";
@@ -78,19 +74,18 @@ public class DataSharingProcessPluginDefinition implements ProcessPluginDefiniti
 
 		var tCoo = "fhir/Task/task-coordinate-data-sharing.xml";
 
-		var vCrypto = "fhir/ValueSet/mii-cryptography.xml";
 		var vDaSeStRe = "fhir/ValueSet/mii-data-set-status-receive.xml";
 		var vDaSeStSe = "fhir/ValueSet/mii-data-set-status-send.xml";
 		var vDaSh = "fhir/ValueSet/data-sharing.xml";
 
 		return Map.of( //
 				ConstantsDataSharing.PROCESS_NAME_FULL_COORDINATE_DATA_SHARING, //
-				List.of(aCoo, cDaSh, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
+				List.of(aCoo, cDaSh, eDaSeStEr, nPrId, qReCon, sTcoo, sTsenMer, sTsenRecHrp, tCoo, vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_EXECUTE_DATA_SHARING, //
-				List.of(aExe, cDaSeSt, cDaSh, eDaSeStEr, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
+				List.of(aExe, cDaSeSt, cDaSh, eDaSeStEr, nReKeId, nPrId, qReExe, sTexe, sTsenRecDic, sTstExe, vDaSeStSe, //
 						vDaSh), //
 				ConstantsDataSharing.PROCESS_NAME_FULL_MERGE_DATA_SHARING, //
-				List.of(aMer, cDaSeSt, cCrypto, cDaSh, eDaSeStEr, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
-						vCrypto, vDaSeStRe, vDaSh));
+				List.of(aMer, cDaSeSt, cDaSh, eDaSeStEr, nReKeId, nPrId, qReMer, sEmedId, sTcon, sTmer, sTsen, //
+						vDaSeStRe, vDaSh));
 	}
 }
