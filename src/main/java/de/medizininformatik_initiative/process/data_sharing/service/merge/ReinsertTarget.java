@@ -78,8 +78,11 @@ public class ReinsertTarget extends AbstractServiceDelegate
 
 	private void updateTaskIfFailed(ProcessPluginApi api, Task latestTask)
 	{
-		api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-				.update(latestTask);
+		if (Task.TaskStatus.FAILED.equals(latestTask.getStatus()))
+		{
+			api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
+					.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
+					.update(latestTask);
+		}
 	}
 }
