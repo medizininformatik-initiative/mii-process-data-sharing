@@ -18,7 +18,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ListResource;
-import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.StringType;
@@ -78,7 +77,6 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 	public void execute(ProcessPluginApi api, Variables variables)
 	{
 		// TODO used project specific private key to decrypt message
-		Task startTask = variables.getStartTask();
 		Task latetTask = variables.getLatestTask();
 
 		List<Resource> encryptedResources = variables
@@ -102,9 +100,6 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 					api.getTaskHelper().getLocalVersionlessAbsoluteUrl(latetTask));
 			if (dmseMailEnabled)
 				sendMail(api, latetTask, projectIdentifier, dicIdentifier, documentReferenceId);
-
-			addStartTaskOutputReceivedDataSet(api, variables, dicIdentifier);
-			updateTask(api.getDsfClientProvider().getLocal(), startTask, variables);
 		}
 		catch (Exception exception)
 		{
@@ -405,20 +400,6 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 				.setUrl(entry.getItem().getReferenceElement().getValue());
 	}
 
-	private void addStartTaskOutputReceivedDataSet(ProcessPluginApi api, Variables variables,
-			String organizationIdentifier)
-	{
-		Task task = variables.getStartTask();
-		task.addOutput()
-				.setValue(new Reference()
-						.setIdentifier(NamingSystems.OrganizationIdentifier.withValue(organizationIdentifier))
-						.setType(ResourceType.Organization.name()))
-				.getType().addCoding().setSystem(ConstantsDataSharing.CODESYSTEM_DATA_SHARING)
-				.setVersion(api.getProcessPluginDefinition().getResourceVersion())
-				.setCode(ConstantsDataSharing.CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_RECEIVED);
-		variables.updateTask(task);
-	}
-
 	private void sendMail(ProcessPluginApi api, Task task, String projectIdentifier, String dicIdentifier,
 			IdType documentReferenceId)
 	{
@@ -433,13 +414,6 @@ public class DecryptValidateAndInsertDataSet implements ServiceTask, Initializin
 				+ getDsfFhirServerAbsoluteId(api, documentReferenceId);
 
 		api.getMailService().send(subject, message);
-	}
-
-	private void updateTask(DsfClient client, Task task, Variables variables)
-	{
-		Task response = client.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-				DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).update(task);
-		variables.updateTask(response);
 	}
 
 	private String getMimeType(Resource resource)
