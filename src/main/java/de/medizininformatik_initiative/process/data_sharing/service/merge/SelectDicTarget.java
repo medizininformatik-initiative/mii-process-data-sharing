@@ -29,6 +29,9 @@ public class SelectDicTarget extends AbstractServiceDelegate
 		Target dicTarget = createTarget(variables, dicIdentifier, dicEndpoint);
 
 		variables.setTarget(dicTarget);
+
+		if (isLocalOrganization(dicIdentifier))
+			completeLatestTask(variables);
 	}
 
 	private Identifier getDicOrganizationIdentifier(Task task)
@@ -51,6 +54,34 @@ public class SelectDicTarget extends AbstractServiceDelegate
 	{
 		String dicEndpointIdentifier = extractEndpointIdentifier(dicEndpoint);
 		return variables.createTarget(dicIdentifier.getValue(), dicEndpointIdentifier, dicEndpoint.getAddress());
+	}
+
+	private boolean isLocalOrganization(Identifier organizationIdentifier)
+	{
+		return api.getOrganizationProvider().getLocalOrganizationIdentifierValue()
+				.map(organizationIdentifier.getValue()::equals).orElse(false);
+	}
+
+	/*
+	 * If the DMS is also the DIC, the receipt is delivered to the execute process on the same DSF instance, which
+	 * immediately continues and permanently deletes the DocumentReference referenced by the received Task. The end
+	 * listener of this subprocess would complete the received Task only afterwards and fail the update due to the
+	 * unresolvable reference. Completing the Task before sending the receipt prevents this, the end listener skips
+	 * Tasks not in-progress.
+	 */
+	private void completeLatestTask(Variables variables)
+	{
+		Task task = variables.getLatestTask();
+
+		if (task == null || !Task.TaskStatus.INPROGRESS.equals(task.getStatus()))
+			return;
+
+		task.setStatus(Task.TaskStatus.COMPLETED);
+		task = api.getFhirWebserviceClientProvider().getLocalWebserviceClient()
+				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
+				.update(task);
+
+		variables.updateTask(task);
 	}
 
 	private String extractEndpointIdentifier(Endpoint endpoint)
